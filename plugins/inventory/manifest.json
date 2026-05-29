@@ -1,0 +1,17 @@
+{
+  "id": "inventory",
+  "name": "Inventory & Assets",
+  "version": "1.0.0",
+  "description": "Track hardware assets, ONU, routers, and stock levels.",
+  "author": "Gemini CLI",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Inventory",
+      "icon": "Zap",
+      "path": "/inventory"
+    }
+  ],
+  "permissions": ["inventory:read", "inventory:write"],
+  "api_prefix": "/api/p/inventory"
+}

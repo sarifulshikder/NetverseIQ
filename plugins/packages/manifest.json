@@ -1,0 +1,17 @@
+{
+  "id": "packages",
+  "name": "Packages & Plans",
+  "version": "1.0.0",
+  "description": "Define and manage ISP internet packages, speeds, and pricing.",
+  "author": "Gemini CLI",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Packages",
+      "icon": "Zap",
+      "path": "/packages"
+    }
+  ],
+  "permissions": ["packages:read", "packages:write"],
+  "api_prefix": "/api/p/packages"
+}

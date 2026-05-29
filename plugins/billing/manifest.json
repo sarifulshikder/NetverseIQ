@@ -1,0 +1,24 @@
+{
+  "id": "billing",
+  "name": "Billing & Invoicing",
+  "version": "1.0.0",
+  "description": "Generate invoices, track payments, manage dues and billing cycles.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Billing",
+      "icon": "FileText",
+      "path": "/billing",
+      "permissions": ["billing:read"]
+    },
+    {
+      "label": "Invoices",
+      "icon": "Receipt",
+      "path": "/billing/invoices",
+      "permissions": ["billing:read"]
+    }
+  ],
+  "permissions": ["billing:read", "billing:write", "billing:delete"],
+  "api_prefix": "/api/p/billing"
+}

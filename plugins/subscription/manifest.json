@@ -1,0 +1,11 @@
+{
+  "id": "subscription",
+  "name": "Subscriptions",
+  "version": "1.0.0",
+  "description": "Manage customer service subscriptions and renewals",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [{"label": "Subscriptions", "icon": "Link", "path": "subscriptions"}],
+  "permissions": ["subscription:read", "subscription:write"],
+  "api_prefix": "/api/p/subscription"
+}

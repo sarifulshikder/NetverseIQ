@@ -1,0 +1,90 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: netverseiq_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-netverseiq}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-netverseiq_secret}
+      POSTGRES_DB: ${DB_NAME:-netverseiq}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-netverseiq}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - netverseiq_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: netverseiq_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - netverseiq_net
+
+  backend:
+    build:
+      context: ./core
+      dockerfile: Dockerfile
+    container_name: netverseiq_backend
+    restart: unless-stopped
+    user: "0:0"
+    env_file: .env
+    volumes:
+      - ./plugins:/app/plugins
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - netverseiq_net
+    expose:
+      - "8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: netverseiq_frontend
+    restart: unless-stopped
+    user: "0:0"
+    depends_on:
+      - backend
+    networks:
+      - netverseiq_net
+    expose:
+      - "80"
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: netverseiq_nginx
+    restart: unless-stopped
+    user: "0:0"
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - netverseiq_net
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  netverseiq_net:
+    driver: bridge

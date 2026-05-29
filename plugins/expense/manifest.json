@@ -1,0 +1,17 @@
+{
+  "id": "expense",
+  "name": "Expense & Accounts",
+  "version": "1.0.0",
+  "description": "Track business expenses, salaries, and bandwidth costs.",
+  "author": "Gemini CLI",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Expenses",
+      "icon": "BarChart2",
+      "path": "/expenses"
+    }
+  ],
+  "permissions": ["expense:read", "expense:write"],
+  "api_prefix": "/api/p/expense"
+}

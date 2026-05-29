@@ -1,0 +1,18 @@
+{
+  "id": "customer",
+  "name": "Customer Management",
+  "version": "1.0.0",
+  "description": "Manage ISP customers: profiles, status, packages, and service history.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Customers",
+      "icon": "Users",
+      "path": "/customers",
+      "permissions": ["customer:read"]
+    }
+  ],
+  "permissions": ["customer:read", "customer:write", "customer:delete"],
+  "api_prefix": "/api/p/customer"
+}

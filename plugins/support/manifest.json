@@ -1,0 +1,17 @@
+{
+  "id": "support",
+  "name": "Support & Ticketing",
+  "version": "1.0.0",
+  "description": "Manage customer support tickets and technical issues.",
+  "author": "Gemini CLI",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Support",
+      "icon": "Activity",
+      "path": "/support"
+    }
+  ],
+  "permissions": ["support:read", "support:write"],
+  "api_prefix": "/api/p/support"
+}

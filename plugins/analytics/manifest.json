@@ -1,0 +1,18 @@
+{
+  "id": "analytics",
+  "name": "Analytics & Reports",
+  "version": "1.0.0",
+  "description": "Dashboard KPIs, revenue reports, customer growth trends, and exportable analytics.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Analytics",
+      "icon": "BarChart2",
+      "path": "/analytics",
+      "permissions": ["analytics:read"]
+    }
+  ],
+  "permissions": ["analytics:read"],
+  "api_prefix": "/api/p/analytics"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "notification",
+  "name": "Notifications & Alerts",
+  "version": "1.0.0",
+  "description": "Send SMS, Email, and push notifications to customers and staff.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Notifications",
+      "icon": "Bell",
+      "path": "/notifications",
+      "permissions": ["notification:read"]
+    }
+  ],
+  "permissions": ["notification:read", "notification:write"],
+  "api_prefix": "/api/p/notification"
+}
