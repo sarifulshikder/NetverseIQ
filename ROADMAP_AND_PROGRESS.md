@@ -13,6 +13,29 @@ You are working on the NetverseIQ project.
 
 You MUST follow these rules strictly:
 
+FIRST:
+- scan all existing plugins
+- analyze architecture
+- create inventory
+- detect duplicate functionality
+- detect conflicts
+- reuse existing modules whenever possible
+
+DO NOT:
+- recreate existing features
+- duplicate APIs
+- replace stable systems
+- delete working plugins without reason
+
+ONLY:
+- refactor
+- standardize
+- modularize
+- improve
+
+
+
+
 1. Read this entire file before starting any task.
 2. Complete tasks sequentially unless dependencies allow parallel execution.
 3. After finishing a task:
