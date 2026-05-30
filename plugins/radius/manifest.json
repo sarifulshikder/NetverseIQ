@@ -1,0 +1,22 @@
+{
+  "id": "radius",
+  "name": "RADIUS Management",
+  "version": "1.0.0",
+  "description": "AAA services (Authentication, Authorization, Accounting) via FreeRADIUS integration.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "RADIUS",
+      "icon": "Key",
+      "path": "/radius",
+      "permissions": ["radius:read"]
+    }
+  ],
+  "permissions": [
+    "radius:read",
+    "radius:write",
+    "radius:sessions"
+  ],
+  "api_prefix": "/api/p/radius"
+}

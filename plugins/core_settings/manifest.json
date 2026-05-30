@@ -1,0 +1,25 @@
+{
+  "id": "core_settings",
+  "name": "Core Settings",
+  "version": "1.0.0",
+  "description": "System-wide settings: Company profile, SMS/Email gateways, Payment gateways, and General configs.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Settings",
+      "icon": "Settings",
+      "path": "/settings",
+      "permissions": ["settings:read"]
+    }
+  ],
+  "permissions": [
+    "settings:read",
+    "settings:write",
+    "company:read",
+    "company:write",
+    "gateways:read",
+    "gateways:write"
+  ],
+  "api_prefix": "/api/p/settings"
+}

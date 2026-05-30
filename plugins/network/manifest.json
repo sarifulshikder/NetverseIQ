@@ -1,0 +1,25 @@
+{
+  "id": "network",
+  "name": "Network Management",
+  "version": "1.0.0",
+  "description": "Manage ISP infrastructure: NAS devices, IP pools, OLT/ONU, and network monitoring.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Network",
+      "icon": "Network",
+      "path": "/network",
+      "permissions": ["network:read"]
+    }
+  ],
+  "permissions": [
+    "network:read",
+    "network:write",
+    "nas:read",
+    "nas:write",
+    "ip_pool:read",
+    "ip_pool:write"
+  ],
+  "api_prefix": "/api/p/network"
+}

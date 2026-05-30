@@ -123,6 +123,10 @@ class PluginLoader:
         plugins_parent = str(plugin_path.parent.parent)
         if plugins_parent not in sys.path:
             sys.path.insert(0, plugins_parent)
+        # Add plugin's own directory so relative imports (from .models) work
+        plugin_dir = str(plugin_path.parent)
+        if plugin_dir not in sys.path:
+            sys.path.insert(0, plugin_dir)
 
         spec = importlib.util.spec_from_file_location(module_name, plugin_path)
         if spec is None or spec.loader is None:

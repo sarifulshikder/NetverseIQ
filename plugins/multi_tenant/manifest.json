@@ -1,0 +1,20 @@
+{
+  "id": "multi_tenant",
+  "name": "Multi-Tenant SaaS",
+  "version": "1.0.0",
+  "description": "Transform the system into a SaaS platform with multi-tenant support and resource limits.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Tenants",
+      "icon": "Layers",
+      "path": "/tenants",
+      "permissions": ["saas:manage"]
+    }
+  ],
+  "permissions": [
+    "saas:manage"
+  ],
+  "api_prefix": "/api/p/saas"
+}

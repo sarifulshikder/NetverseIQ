@@ -1,0 +1,21 @@
+{
+  "id": "reporting",
+  "name": "Reporting & Dashboards",
+  "version": "1.0.0",
+  "description": "Aggregate business data and generate financial, operational, and network reports.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Reports",
+      "icon": "BarChart",
+      "path": "/reports",
+      "permissions": ["report:read"]
+    }
+  ],
+  "permissions": [
+    "report:read",
+    "report:export"
+  ],
+  "api_prefix": "/api/p/report"
+}

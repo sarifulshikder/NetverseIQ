@@ -1,0 +1,22 @@
+{
+  "id": "reseller",
+  "name": "Reseller Management",
+  "version": "1.0.0",
+  "description": "Manage resellers, commissions, custom pricing, and white-label support.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Resellers",
+      "icon": "Briefcase",
+      "path": "/resellers",
+      "permissions": ["reseller:read"]
+    }
+  ],
+  "permissions": [
+    "reseller:read",
+    "reseller:write",
+    "reseller:portal"
+  ],
+  "api_prefix": "/api/p/reseller"
+}

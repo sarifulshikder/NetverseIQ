@@ -1,0 +1,23 @@
+{
+  "id": "area_zone",
+  "name": "Area & Zone Management",
+  "version": "1.0.0",
+  "description": "Manage geographical areas, coverage zones, and technician assignments.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Areas & Zones",
+      "icon": "MapPin",
+      "path": "/area-zones",
+      "permissions": ["area:read"]
+    }
+  ],
+  "permissions": [
+    "area:read",
+    "area:write",
+    "zone:read",
+    "zone:write"
+  ],
+  "api_prefix": "/api/p/area"
+}

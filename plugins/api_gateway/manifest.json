@@ -1,0 +1,21 @@
+{
+  "id": "api_gateway",
+  "name": "Public API Gateway",
+  "version": "1.0.0",
+  "description": "Manage public API keys, rate limits, and third-party integrations.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "API Gateway",
+      "icon": "Shield",
+      "path": "/api-gateway",
+      "permissions": ["api:manage"]
+    }
+  ],
+  "permissions": [
+    "api:manage",
+    "api:usage"
+  ],
+  "api_prefix": "/api/p/gateway"
+}

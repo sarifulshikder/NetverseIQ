@@ -1,0 +1,13 @@
+{
+  "id": "customer_portal",
+  "name": "Customer Self-Service Portal",
+  "version": "1.0.0",
+  "description": "API for customer portal: self-management, billing, payments, and support.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [],
+  "permissions": [
+    "portal:access"
+  ],
+  "api_prefix": "/api/p/portal"
+}

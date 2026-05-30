@@ -1,0 +1,23 @@
+{
+  "id": "hrm",
+  "name": "HRM Management",
+  "version": "1.0.0",
+  "description": "Manage employees, departments, attendance, payroll, and performance.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "HRM",
+      "icon": "Users",
+      "path": "/hrm",
+      "permissions": ["hrm:read"]
+    }
+  ],
+  "permissions": [
+    "hrm:read",
+    "hrm:write",
+    "payroll:read",
+    "attendance:read"
+  ],
+  "api_prefix": "/api/p/hrm"
+}

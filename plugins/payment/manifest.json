@@ -1,0 +1,22 @@
+{
+  "id": "payment",
+  "name": "Payment Management",
+  "version": "1.0.0",
+  "description": "Manage payments, online gateways, refunds, and financial reconciliation.",
+  "author": "NetverseIQ",
+  "enabled": true,
+  "menu": [
+    {
+      "label": "Payments",
+      "icon": "CreditCard",
+      "path": "/payments",
+      "permissions": ["payment:read"]
+    }
+  ],
+  "permissions": [
+    "payment:read",
+    "payment:write",
+    "refund:write"
+  ],
+  "api_prefix": "/api/p/payment"
+}
