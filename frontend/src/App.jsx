@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import useAuthStore from './store/authStore.js'
 import useThemeStore from './store/themeStore.js'
@@ -15,6 +15,24 @@ import Inventory from './pages/Inventory.jsx'
 import Expenses from './pages/Expenses.jsx'
 import Packages from './pages/Packages.jsx'
 import Subscriptions from './pages/Subscriptions.jsx'
+import PluginPage from './pages/PluginPage.jsx'
+import api from './api/client.js'
+
+const STATIC_PAGES = {
+  '':            <Dashboard />,
+  'plugins':     <Plugins />,
+  'customers':   <Customers />,
+  'billing':     <Billing />,
+  'billing/invoices': <Billing />,
+  'notifications': <Notifications />,
+  'analytics':   <Dashboard />,
+  'support':     <Support />,
+  'inventory':   <Inventory />,
+  'expenses':    <Expenses />,
+  'packages':    <Packages />,
+  'subscriptions': <Subscriptions />,
+  'users':       <Users />,
+}
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuthStore()
@@ -29,41 +47,60 @@ function PrivateRoute({ children }) {
   return isAuthenticated ? children : <Navigate to="/login" replace />
 }
 
-export default function App() {
-  const { init } = useAuthStore()
-  const { init: initTheme } = useThemeStore()
+function DynamicRoutes() {
+  const [pluginRoutes, setPluginRoutes] = useState([])
 
   useEffect(() => {
-    initTheme()
-    init()
+    api.get('/plugins/menu')
+      .then(r => {
+        const dynamic = r.data.filter(item => {
+          const path = item.path.startsWith('/') ? item.path.slice(1) : item.path
+          return !STATIC_PAGES.hasOwnProperty(path)
+        })
+        setPluginRoutes(dynamic)
+      })
+      .catch(() => {})
   }, [])
 
   return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+        {Object.entries(STATIC_PAGES).map(([path, element]) => (
+          path === ''
+            ? <Route key="index" index element={element} />
+            : <Route key={path} path={path} element={element} />
+        ))}
+        {pluginRoutes.map(item => {
+          const path = item.path.startsWith('/') ? item.path.slice(1) : item.path
+          return (
+            <Route key={path} path={path} element={
+              <PluginPage
+                pluginId={item.plugin_id || path}
+                apiPrefix={item.api_prefix || `/api/p/${path}`}
+                title={item.label}
+              />
+            } />
+          )
+        })}
+        <Route path="*" element={
+          <div className="flex flex-col items-center justify-center h-64 gap-3">
+            <p className="text-5xl font-bold" style={{ color: 'var(--text-secondary)' }}>404</p>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Page not found</p>
+          </div>
+        } />
+      </Route>
+    </Routes>
+  )
+}
+
+export default function App() {
+  const { init } = useAuthStore()
+  const { init: initTheme } = useThemeStore()
+  useEffect(() => { initTheme(); init() }, [])
+  return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-          <Route index element={<Dashboard />} />
-          <Route path="plugins" element={<Plugins />} />
-          <Route path="customers" element={<Customers />} />
-          <Route path="billing" element={<Billing />} />
-          <Route path="billing/invoices" element={<Billing />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="analytics" element={<Dashboard />} />
-          <Route path="support" element={<Support />} />
-          <Route path="inventory" element={<Inventory />} />
-          <Route path="expenses" element={<Expenses />} />
-          <Route path="packages" element={<Packages />} />
-          <Route path="subscriptions" element={<Subscriptions />} />
-          <Route path="users" element={<Users />} />
-          <Route path="*" element={
-            <div className="flex flex-col items-center justify-center h-64 gap-3">
-              <p className="text-5xl font-bold" style={{ color: 'var(--text-secondary)' }}>404</p>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Page not found</p>
-            </div>
-          } />
-        </Route>
-      </Routes>
+      <DynamicRoutes />
     </BrowserRouter>
   )
 }

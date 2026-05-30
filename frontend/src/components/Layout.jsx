@@ -4,16 +4,15 @@ import Sidebar from './Sidebar.jsx'
 import Header from './Header.jsx'
 import useAuthStore from '../store/authStore.js'
 
-const PAGE_TITLES = {
-  '/': 'Dashboard', '/users': 'User Management', '/plugins': 'Plugin Manager',
-  '/customers': 'Customers', '/billing': 'Billing & Invoices',
-  '/notifications': 'Notifications', '/analytics': 'Analytics',
+function toTitle(pathname) {
+  if (pathname === '/') return 'Dashboard'
+  const segment = pathname.split('/').filter(Boolean).pop() || ''
+  return segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ')
 }
 
 export default function Layout() {
   const user = useAuthStore(s => s.user)
   const { pathname } = useLocation()
-  const title = PAGE_TITLES[pathname] || 'NetverseIQ'
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -30,7 +29,7 @@ export default function Layout() {
         </div>
       )}
       <div className="flex-1 flex flex-col min-w-0">
-        <Header title={title} onMenuClick={() => setSidebarOpen(o => !o)} />
+        <Header title={toTitle(pathname)} onMenuClick={() => setSidebarOpen(o => !o)} />
         <main className="flex-1 p-3 lg:p-6 overflow-auto" style={{ background: 'var(--bg-primary)' }}>
           <Outlet />
         </main>

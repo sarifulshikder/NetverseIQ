@@ -59,11 +59,21 @@ class PluginLoader:
                     plugin_id = manifest.get("id", plugin_dir.name)
 
                     # Sync to DB registry
-                    await self._sync_registry(db, plugin_id, manifest)
+                    # Sync to DB registry and get the current enabled status
+                    is_enabled = await self._sync_registry(db, plugin_id, manifest)
 
-                    # Load Python module if plugin.py exists
+                    # Only load Python module if plugin.py exists AND the plugin is enabled
                     if plugin_path.exists():
-                        await self._load_module(app, plugin_id, plugin_path, manifest)
+                        if is_enabled:
+                            await self._load_module(app, plugin_id, plugin_path, manifest)
+                        else:
+                            logger.info(f"Plugin skipped (disabled): {plugin_id}")
+
+                    if is_enabled:
+                        self.loaded.append(plugin_id)
+                        logger.info(f"✓ Plugin loaded: {plugin_id} v{manifest.get('version', '?')}")
+                    else:
+                        logger.info(f"Plugin {plugin_id} v{manifest.get('version', '?')} registered but not loaded (disabled).")
 
                     self.loaded.append(plugin_id)
                     logger.info(f"✓ Plugin loaded: {plugin_id} v{manifest.get('version', '?')}")
@@ -100,6 +110,8 @@ class PluginLoader:
             record.description = manifest.get("description", "")
             record.author = manifest.get("author", "")
             record.manifest = manifest
+
+        return record.is_enabled
 
     async def _load_module(
         self, app: FastAPI, plugin_id: str, plugin_path: Path, manifest: dict

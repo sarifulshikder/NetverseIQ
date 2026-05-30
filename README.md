@@ -20,10 +20,10 @@ http://localhost
 ```
 
 ### Default Login
-| Field    | Value                     |
-|----------|---------------------------|
-| Email    | admin@netverseiq.local    |
-| Password | Admin@1234                |
+| Field    | Value                  |
+|----------|------------------------|
+| Email    | admin@netverseiq.local |
+| Password | Admin1234              |
 
 > Change credentials in `.env` before production deployment!
 
@@ -37,7 +37,6 @@ Browser → Nginx (port 80)
              │               ├── Core: Auth, Users, Plugin Manager
              │               └── Plugins: Customer, Billing, Notifications, Analytics
              └── /*      →  React Frontend (Vite build)
-
 Backend ←→ PostgreSQL (port 5432, internal)
 Backend ←→ Redis (port 6379, internal)
 ```
@@ -53,17 +52,28 @@ Each plugin lives in `/plugins/<name>/` and contains:
 | `manifest.json` | Plugin metadata, menu items, permissions     |
 | `plugin.py`     | `register(app, Base)` — mounts routes+models |
 
-**Plugins are auto-discovered on startup.** No restart needed after adding a plugin file — just restart the backend container.
+### How Plugins Work
+
+- **Backend:** Plugins are auto-discovered on startup. Add `plugin.py` + `manifest.json`, restart backend — routes are live.
+- **Frontend:** The sidebar menu is fully dynamic — it reads from `/api/plugins/menu` automatically. New plugins appear in the menu without any frontend changes.
+- **Generic UI:** If a plugin has a `/list` endpoint, the built-in `PluginPage` component will display, add, edit, and delete records automatically — no new page needed.
+- **Custom UI:** For complex plugins (like Customers, Billing), a dedicated page can be created in `frontend/src/pages/` and registered in `App.jsx`.
 
 ### Built-in Plugins
+
 | Plugin        | API Prefix              | Features                          |
 |---------------|-------------------------|-----------------------------------|
 | customer      | `/api/p/customer/`      | Customer CRUD, search, stats      |
-| billing       | `/api/p/billing/`       | Invoices, payment tracking, stats |
+| billing       | `/api/p/billing/`       | Invoices, payment tracking        |
 | notification  | `/api/p/notification/`  | Send & log notifications          |
 | analytics     | `/api/p/analytics/`     | KPIs, revenue trend, growth       |
+| subscription  | `/api/p/subscription/`  | Subscriptions, renewals           |
+| packages      | `/api/p/packages/`      | ISP package management            |
+| inventory     | `/api/p/inventory/`     | Equipment inventory               |
+| expense       | `/api/p/expense/`       | Expense tracking                  |
+| support       | `/api/p/support/`       | Support tickets                   |
 
-### Creating a New Plugin
+### Creating a New Plugin (Backend only — UI is automatic!)
 
 ```bash
 mkdir plugins/myplugin
@@ -79,25 +89,61 @@ mkdir plugins/myplugin
   "author": "You",
   "enabled": true,
   "menu": [
-    { "label": "My Page", "icon": "Star", "path": "/myplugin" }
-  ]
+    { "label": "My Page", "icon": "Star", "path": "myplugin" }
+  ],
+  "api_prefix": "/api/p/myplugin"
 }
 ```
 
 **`plugins/myplugin/plugin.py`**
 ```python
 def register(app, Base):
-    from fastapi import APIRouter
+    from fastapi import APIRouter, Depends
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from sqlalchemy import select, Integer, String, update, delete
+    from sqlalchemy.orm import Mapped, mapped_column
+    from database import get_db
+
+    class MyModel(Base):
+        __tablename__ = "myplugin_items"
+        __table_args__ = {"extend_existing": True}
+        id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+        name: Mapped[str] = mapped_column(String(256))
+
     router = APIRouter(prefix="/api/p/myplugin", tags=["My Plugin"])
 
-    @router.get("/")
-    async def hello():
-        return {"hello": "from myplugin"}
+    @router.get("/list")
+    async def list_items(db: AsyncSession = Depends(get_db)):
+        result = await db.execute(select(MyModel))
+        items = result.scalars().all()
+        return {"total": len(items), "items": [{"id": i.id, "name": i.name} for i in items]}
+
+    @router.post("/")
+    async def create_item(body: dict, db: AsyncSession = Depends(get_db)):
+        item = MyModel(**body)
+        db.add(item); await db.commit(); await db.refresh(item)
+        return {"id": item.id, "name": item.name}
+
+    @router.put("/{item_id}")
+    async def update_item(item_id: int, body: dict, db: AsyncSession = Depends(get_db)):
+        await db.execute(update(MyModel).where(MyModel.id == item_id).values(**body))
+        await db.commit()
+        return {"ok": True}
+
+    @router.delete("/{item_id}", status_code=204)
+    async def delete_item(item_id: int, db: AsyncSession = Depends(get_db)):
+        await db.execute(delete(MyModel).where(MyModel.id == item_id))
+        await db.commit()
 
     app.include_router(router)
 ```
 
-Then restart backend: `docker compose restart backend`
+Then restart backend only:
+```bash
+docker compose restart backend
+```
+
+✅ The new plugin will appear in the sidebar and show a full data table automatically — **no frontend changes needed!**
 
 ---
 
@@ -110,6 +156,9 @@ docker compose logs -f frontend
 
 # Restart only backend (after plugin changes)
 docker compose restart backend
+
+# Rebuild frontend (only needed for core UI changes)
+docker compose build frontend && docker compose up -d frontend
 
 # Stop everything
 docker compose down
@@ -133,28 +182,28 @@ Visit: **http://localhost/api/docs** (Swagger UI)
 
 ```
 netverseiq/
-├── core/               # FastAPI backend (microkernel)
-│   ├── main.py         # App entry point
-│   ├── plugin_loader.py# Auto-discovers & loads plugins
-│   ├── api/routes/     # Core routes: auth, users, plugins, health
-│   ├── models/         # SQLAlchemy models (User, Role, PluginRegistry)
-│   ├── schemas/        # Pydantic schemas
-│   └── services/       # Auth service (JWT, password)
-├── frontend/           # React + Vite + TailwindCSS
+├── core/                  # FastAPI backend (microkernel)
+│   ├── main.py            # App entry point
+│   ├── plugin_loader.py   # Auto-discovers & loads plugins
+│   ├── api/routes/        # Core routes: auth, users, plugins, health
+│   ├── models/            # SQLAlchemy models
+│   ├── schemas/           # Pydantic schemas
+│   └── services/          # Auth service (JWT, password)
+├── frontend/              # React + Vite + TailwindCSS
 │   └── src/
-│       ├── App.jsx     # Router + auth guard
-│       ├── pages/      # Dashboard, Customers, Billing, etc.
-│       ├── components/ # Layout, Sidebar, Header, StatCard
-│       └── store/      # Zustand: auth + theme
-├── plugins/            # All feature plugins (add yours here)
+│       ├── App.jsx        # Router (static + dynamic plugin routes)
+│       ├── pages/         # Dashboard, Customers, Billing, etc.
+│       │   └── PluginPage.jsx  # Generic page for new plugins (auto UI)
+│       ├── components/    # Layout, Sidebar (dynamic menu), Header
+│       └── store/         # Zustand: auth + theme
+├── plugins/               # All feature plugins (add yours here!)
 │   ├── customer/
 │   ├── billing/
-│   ├── notification/
-│   └── analytics/
-├── nginx/              # Reverse proxy config
-├── docs/               # Additional documentation
+│   ├── subscription/
+│   └── ...
+├── nginx/                 # Reverse proxy config
 ├── docker-compose.yml
-└── .env                # Environment configuration
+└── .env                   # Environment configuration
 ```
 
 ---
