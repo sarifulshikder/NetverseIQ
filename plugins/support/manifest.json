@@ -17,5 +17,12 @@
     "support:write"
   ],
   "api_prefix": "/api/p/support",
-  "list_endpoint": "/api/p/support/"
+  "list_endpoint": "/api/p/support/",
+  "fields": [
+    "title",
+    "customer_id",
+    "priority",
+    "status",
+    "created_at"
+  ]
 }

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { RefreshCw, PlusCircle, Trash2, Edit2 } from 'lucide-react'
 import api from '../api/client.js'
 
-export default function PluginPage({ pluginId, apiPrefix, title, listEndpoint }) {
+export default function PluginPage({ pluginId, apiPrefix, title, listEndpoint, fields: manifestFields }) {
   const [items, setItems]     = useState([])
   const [total, setTotal]     = useState(0)
   const [loading, setLoading] = useState(true)
@@ -10,11 +10,9 @@ export default function PluginPage({ pluginId, apiPrefix, title, listEndpoint })
   const [modal, setModal]     = useState(null)
   const [form, setForm]       = useState({})
   const [saving, setSaving]   = useState(false)
-  const [keys, setKeys]       = useState([])
+  const [keys, setKeys]       = useState(manifestFields || [])
 
   const base = apiPrefix?.replace(/^\/api/, '') || `/p/${pluginId}`
-
-  // list_endpoint থেকে relative path বানাও
   const listPath = listEndpoint
     ? listEndpoint.replace(/^\/api/, '')
     : `${base}/list`
@@ -28,27 +26,33 @@ export default function PluginPage({ pluginId, apiPrefix, title, listEndpoint })
       if (Array.isArray(data)) {
         arr = data
       } else if (data && typeof data === 'object') {
-        // items, data, results, employees, products ইত্যাদি যেকোনো key
-        const listKey = ['items','data','results','employees','products',
-          'invoices','payments','tenants','areas','zones','sessions',
-          'keys','webhooks','nasDevices','nodes','outages'].find(k => Array.isArray(data[k]))
-        arr = listKey ? data[listKey] : Object.values(data).find(v => Array.isArray(v)) || []
+        const listKey = Object.keys(data).find(k => Array.isArray(data[k]))
+        arr = listKey ? data[listKey] : []
       }
       setItems(arr)
       setTotal(data?.total ?? arr.length)
+      // data থাকলে data থেকে keys নাও, না থাকলে manifest fields ব্যবহার করো
       if (arr.length > 0) {
         setKeys(Object.keys(arr[0]).filter(k =>
           !['id','created_at','updated_at','sa_instance_state','password','hashed_password'].includes(k)
-        ).slice(0, 6)) // max 6 columns
+        ).slice(0, 6))
+      } else if (manifestFields?.length > 0) {
+        setKeys(manifestFields)
       }
     } catch (e) {
-      setError(e.response?.data?.detail || `Failed to load data (${listPath})`)
+      setError(e.response?.data?.detail || `Failed to load data`)
+      if (manifestFields?.length > 0) setKeys(manifestFields)
     } finally { setLoading(false) }
   }, [listPath])
 
   useEffect(() => { load() }, [load])
 
-  const openAdd  = () => { setForm({}); setModal('add') }
+  const openAdd  = () => { 
+    const emptyForm = {}
+    keys.forEach(k => emptyForm[k] = '')
+    setForm(emptyForm)
+    setModal('add') 
+  }
   const openEdit = (item) => { setForm({ ...item }); setModal(item) }
 
   const save = async () => {
@@ -83,7 +87,6 @@ export default function PluginPage({ pluginId, apiPrefix, title, listEndpoint })
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
       <div className="flex items-center gap-3">
         <button onClick={load}
           className="p-2 rounded-lg border hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
@@ -100,7 +103,6 @@ export default function PluginPage({ pluginId, apiPrefix, title, listEndpoint })
         <div className="px-4 py-3 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-500 text-sm">{error}</div>
       )}
 
-      {/* Table */}
       <div className="rounded-xl overflow-hidden shadow-sm"
         style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
         <div className="px-5 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
@@ -160,7 +162,6 @@ export default function PluginPage({ pluginId, apiPrefix, title, listEndpoint })
         </div>
       </div>
 
-      {/* Modal */}
       {modal !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
@@ -173,9 +174,7 @@ export default function PluginPage({ pluginId, apiPrefix, title, listEndpoint })
               <button onClick={() => setModal(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
             </div>
             <div className="p-6 grid grid-cols-2 gap-4">
-              {(modal === 'add' ? keys : Object.keys(form).filter(k =>
-                !['id','created_at','updated_at'].includes(k)
-              )).map(k => (
+              {Object.keys(form).filter(k => !['id','created_at','updated_at'].includes(k)).map(k => (
                 <div key={k} className="col-span-2 sm:col-span-1">
                   <label className="text-xs font-semibold uppercase tracking-wide"
                     style={{ color: 'var(--text-secondary)' }}>{k.replace(/_/g, ' ')}</label>

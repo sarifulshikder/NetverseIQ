@@ -20,5 +20,12 @@
     "notification:write"
   ],
   "api_prefix": "/api/p/notification",
-  "list_endpoint": "/api/p/notification/"
+  "list_endpoint": "/api/p/notification/",
+  "fields": [
+    "title",
+    "type",
+    "channel",
+    "status",
+    "created_at"
+  ]
 }

@@ -61,7 +61,7 @@ export default function Sidebar({ user }) {
   const isSuper = user?.is_superuser
 
   return (
-    <aside className="w-60 min-h-screen flex flex-col"
+    <aside className="w-60 h-screen flex flex-col sticky top-0"
       style={{ background: 'var(--bg-sidebar)' }}>
 
       {/* Logo */}

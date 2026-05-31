@@ -17,5 +17,12 @@
     "subscription:write"
   ],
   "api_prefix": "/api/p/subscription",
-  "list_endpoint": "/api/p/subscription/"
+  "list_endpoint": "/api/p/subscription/",
+  "fields": [
+    "customer_id",
+    "package_id",
+    "status",
+    "monthly_price",
+    "end_date"
+  ]
 }

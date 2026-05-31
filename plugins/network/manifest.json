@@ -24,5 +24,12 @@
     "ip_pool:write"
   ],
   "api_prefix": "/api/p/network",
-  "list_endpoint": "/api/p/network/nas"
+  "list_endpoint": "/api/p/network/nas",
+  "fields": [
+    "name",
+    "ip_address",
+    "type",
+    "vendor",
+    "status"
+  ]
 }

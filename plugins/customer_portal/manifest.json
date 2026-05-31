@@ -10,5 +10,10 @@
     "portal:access"
   ],
   "api_prefix": "/api/p/portal",
-  "list_endpoint": "/api/p/customer_portal/dashboard/1"
+  "list_endpoint": "/api/p/customer_portal/dashboard/1",
+  "fields": [
+    "customer_id",
+    "last_login",
+    "status"
+  ]
 }

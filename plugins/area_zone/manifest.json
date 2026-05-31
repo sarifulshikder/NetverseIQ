@@ -22,5 +22,11 @@
     "zone:write"
   ],
   "api_prefix": "/api/p/area",
-  "list_endpoint": "/api/p/area_zone/areas"
+  "list_endpoint": "/api/p/area_zone/areas",
+  "fields": [
+    "name",
+    "parent",
+    "description",
+    "zone_count"
+  ]
 }

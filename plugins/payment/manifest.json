@@ -21,5 +21,12 @@
     "refund:write"
   ],
   "api_prefix": "/api/p/payment",
-  "list_endpoint": "/api/p/payment/"
+  "list_endpoint": "/api/p/payment/",
+  "fields": [
+    "customer_id",
+    "amount",
+    "method",
+    "status",
+    "reference"
+  ]
 }

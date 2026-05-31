@@ -22,5 +22,12 @@
     "attendance:read"
   ],
   "api_prefix": "/api/p/hrm",
-  "list_endpoint": "/api/p/hrm/employees"
+  "list_endpoint": "/api/p/hrm/employees",
+  "fields": [
+    "name",
+    "designation",
+    "phone",
+    "join_date",
+    "status"
+  ]
 }

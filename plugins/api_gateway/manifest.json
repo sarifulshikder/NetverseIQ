@@ -20,5 +20,12 @@
     "api:usage"
   ],
   "api_prefix": "/api/p/gateway",
-  "list_endpoint": "/api/p/api_gateway/keys"
+  "list_endpoint": "/api/p/api_gateway/keys",
+  "fields": [
+    "name",
+    "key",
+    "rate_limit",
+    "status",
+    "created_at"
+  ]
 }

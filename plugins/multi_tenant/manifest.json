@@ -19,5 +19,12 @@
     "saas:manage"
   ],
   "api_prefix": "/api/p/saas",
-  "list_endpoint": "/api/p/multi_tenant/tenants"
+  "list_endpoint": "/api/p/multi_tenant/tenants",
+  "fields": [
+    "name",
+    "subdomain",
+    "plan",
+    "status",
+    "created_at"
+  ]
 }

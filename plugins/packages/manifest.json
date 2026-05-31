@@ -17,5 +17,12 @@
     "packages:write"
   ],
   "api_prefix": "/api/p/packages",
-  "list_endpoint": "/api/p/packages/"
+  "list_endpoint": "/api/p/packages/",
+  "fields": [
+    "name",
+    "speed",
+    "monthly_price",
+    "status",
+    "category"
+  ]
 }

@@ -20,5 +20,11 @@
     "report:export"
   ],
   "api_prefix": "/api/p/report",
-  "list_endpoint": "/api/p/reporting/financial/summary"
+  "list_endpoint": "/api/p/reporting/financial/summary",
+  "fields": [
+    "report_type",
+    "period",
+    "total_revenue",
+    "total_customers"
+  ]
 }

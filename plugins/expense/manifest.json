@@ -17,5 +17,12 @@
     "expense:write"
   ],
   "api_prefix": "/api/p/expense",
-  "list_endpoint": "/api/p/expense/"
+  "list_endpoint": "/api/p/expense/",
+  "fields": [
+    "title",
+    "category",
+    "amount",
+    "date",
+    "status"
+  ]
 }

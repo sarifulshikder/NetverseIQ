@@ -29,5 +29,12 @@
     "billing:delete"
   ],
   "api_prefix": "/api/p/billing",
-  "list_endpoint": "/api/p/billing/invoices"
+  "list_endpoint": "/api/p/billing/invoices",
+  "fields": [
+    "invoice_number",
+    "customer_id",
+    "amount",
+    "status",
+    "due_date"
+  ]
 }

@@ -19,5 +19,11 @@
     "analytics:read"
   ],
   "api_prefix": "/api/p/analytics",
-  "list_endpoint": "/api/p/analytics/dashboard"
+  "list_endpoint": "/api/p/analytics/dashboard",
+  "fields": [
+    "metric",
+    "value",
+    "period",
+    "change"
+  ]
 }

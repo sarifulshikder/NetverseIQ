@@ -21,5 +21,12 @@
     "reseller:portal"
   ],
   "api_prefix": "/api/p/reseller",
-  "list_endpoint": "/api/p/reseller/"
+  "list_endpoint": "/api/p/reseller/",
+  "fields": [
+    "name",
+    "phone",
+    "email",
+    "commission_type",
+    "status"
+  ]
 }

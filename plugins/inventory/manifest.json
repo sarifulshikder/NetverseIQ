@@ -17,5 +17,12 @@
     "inventory:write"
   ],
   "api_prefix": "/api/p/inventory",
-  "list_endpoint": "/api/p/inventory/products"
+  "list_endpoint": "/api/p/inventory/products",
+  "fields": [
+    "name",
+    "model",
+    "category",
+    "quantity",
+    "unit_price"
+  ]
 }

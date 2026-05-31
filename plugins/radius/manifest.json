@@ -21,5 +21,12 @@
     "radius:sessions"
   ],
   "api_prefix": "/api/p/radius",
-  "list_endpoint": "/api/p/radius/sessions/online"
+  "list_endpoint": "/api/p/radius/sessions/online",
+  "fields": [
+    "username",
+    "ip_address",
+    "session_time",
+    "bytes_in",
+    "bytes_out"
+  ]
 }

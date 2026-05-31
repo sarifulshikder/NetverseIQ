@@ -50,6 +50,7 @@ async def get_menu(
                 "plugin_id": p.plugin_id,
                 "api_prefix": api_prefix,
                 "list_endpoint": list_endpoint,
+                "fields": p.manifest.get("fields", []),
             }
             menu.append(enriched)
     return menu

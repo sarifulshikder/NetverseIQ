@@ -24,5 +24,11 @@
     "gateways:write"
   ],
   "api_prefix": "/api/p/settings",
-  "list_endpoint": "/api/p/core_settings/all"
+  "list_endpoint": "/api/p/core_settings/all",
+  "fields": [
+    "key",
+    "value",
+    "group",
+    "description"
+  ]
 }

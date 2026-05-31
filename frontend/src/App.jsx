@@ -77,9 +77,10 @@ function DynamicRoutes() {
             <Route key={path} path={path} element={
               <PluginPage
                 pluginId={item.plugin_id || path}
-                apiPrefix={item.api_prefix || `/api/p/${path}`}
+                apiPrefix={item.api_prefix}
                 title={item.label}
                 listEndpoint={item.list_endpoint}
+                fields={item.fields}
               />
             } />
           )
