@@ -1,7 +1,7 @@
 """Customer Portal Plugin — FastAPI Routes"""
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import text
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
 from datetime import datetime, timedelta
@@ -28,11 +28,11 @@ async def get_current_portal_customer(
             raise HTTPException(status_code=403, detail="Forbidden: Not a customer")
         
         customer_id = int(payload.get("sub"))
-        # We need the Customer model. It's usually injected or we can import it if we know the path.
-        # Since this is a plugin, we'll use the injected models if available, or query directly.
-        from plugins.customer.models import Customer
-        result = await db.execute(select(Customer).where(Customer.id == customer_id))
-        customer = result.scalar_one_or_none()
+        result = await db.execute(
+            text("SELECT * FROM customers WHERE id=:id"),
+            {"id": customer_id}
+        )
+        customer = result.mappings().one_or_none()
         if not customer:
             raise HTTPException(status_code=401, detail="Customer not found")
         return customer
@@ -46,9 +46,11 @@ def get_router(injected_models: Dict[str, Any]):
     # ── Auth Endpoints ────────────────────────────────────────
     @router.post("/login", summary="Customer portal login (Mock)")
     async def portal_login(phone: str, db: AsyncSession = Depends(_get_db)):
-        from plugins.customer.models import Customer
-        result = await db.execute(select(Customer).where(Customer.phone == phone))
-        customer = result.scalar_one_or_none()
+        result = await db.execute(
+            text("SELECT * FROM customers WHERE phone=:phone"),
+            {"phone": phone}
+        )
+        customer = result.mappings().one_or_none()
         
         if not customer:
             raise HTTPException(status_code=404, detail="Customer with this phone not found")
@@ -56,7 +58,7 @@ def get_router(injected_models: Dict[str, Any]):
         # In a real app, send OTP here. For mock, we just issue token.
         expire = datetime.utcnow() + timedelta(days=7)
         token = jwt.encode(
-            {"sub": str(customer.id), "role": "customer", "exp": expire},
+            {"sub": str(customer["id"]), "role": "customer", "exp": expire},
             settings.JWT_SECRET_KEY,
             algorithm=settings.JWT_ALGORITHM
         )
@@ -65,7 +67,7 @@ def get_router(injected_models: Dict[str, Any]):
             "status": "success", 
             "access_token": token,
             "token_type": "bearer",
-            "customer_name": customer.name
+            "customer_name": customer["name"]
         }
 
     # ── Dashboard Endpoints ────────────────────────────────────
@@ -74,12 +76,11 @@ def get_router(injected_models: Dict[str, Any]):
         db: AsyncSession = Depends(_get_db), 
         current_customer: Any = Depends(get_current_portal_customer)
     ):
-        # Already have customer in current_customer
         return {
-            "customer_name": current_customer.name,
-            "current_package": current_customer.package_name or "No Package",
-            "status": current_customer.status,
-            "total_due": float(current_customer.monthly_fee),
+            "customer_name": current_customer["name"],
+            "current_package": current_customer["package_name"] or "No Package",
+            "status": current_customer["status"],
+            "total_due": float(current_customer["monthly_fee"]),
             "expiry_date": (datetime.utcnow() + timedelta(days=15)).strftime("%Y-%m-%d"),
             "data_usage": "Usage data requires RADIUS integration"
         }
@@ -90,14 +91,11 @@ def get_router(injected_models: Dict[str, Any]):
         db: AsyncSession = Depends(_get_db), 
         current_customer: Any = Depends(get_current_portal_customer)
     ):
-        try:
-            from plugins.billing.models import Invoice
-            result = await db.execute(
-                select(Invoice).where(Invoice.customer_id == current_customer.id).order_by(Invoice.created_at.desc())
-            )
-            return result.scalars().all()
-        except ImportError:
-            return []
+        result = await db.execute(
+            text("SELECT * FROM invoices WHERE customer_id=:id ORDER BY created_at DESC"),
+            {"id": current_customer["id"]}
+        )
+        return [dict(row) for row in result.mappings().all()]
 
     # ── Support Endpoints ─────────────────────────────────────
     @router.get("/tickets", summary="Customer tickets")
@@ -105,15 +103,10 @@ def get_router(injected_models: Dict[str, Any]):
         db: AsyncSession = Depends(_get_db), 
         current_customer: Any = Depends(get_current_portal_customer)
     ):
-        try:
-            from plugins.support.models import Ticket
-            result = await db.execute(
-                select(Ticket).where(Ticket.customer_id == current_customer.id).order_by(Ticket.created_at.desc())
-            )
-            return result.scalars().all()
-        except ImportError:
-            return []
+        result = await db.execute(
+            text("SELECT * FROM tickets WHERE customer_id=:id ORDER BY created_at DESC"),
+            {"id": current_customer["id"]}
+        )
+        return [dict(row) for row in result.mappings().all()]
 
     return router
-
-
