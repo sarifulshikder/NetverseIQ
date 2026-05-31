@@ -1,6 +1,7 @@
+from decimal import Decimal
 """RADIUS Plugin — SQLAlchemy Models (FreeRADIUS Schema)"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, ForeignKey, BigInteger
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, ForeignKey, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 

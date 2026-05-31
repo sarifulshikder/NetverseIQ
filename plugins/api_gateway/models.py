@@ -1,6 +1,7 @@
+from decimal import Decimal
 """API Gateway Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, JSON, ForeignKey
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 

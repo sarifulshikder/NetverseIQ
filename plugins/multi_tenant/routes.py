@@ -5,6 +5,8 @@ from sqlalchemy import select, func, update, delete
 from sqlalchemy.orm import selectinload
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime
 
 router = APIRouter(prefix="/api/p/multi_tenant", tags=["Plugin: Multi_Tenant"])
@@ -21,12 +23,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Tenant Endpoints ──────────────────────────────────────
     @router.get("/tenants", summary="List all tenants")
-    async def list_tenants(db: AsyncSession = Depends(_get_db)):
+    async def list_tenants(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Tenant))
         return result.scalars().all()
 
     @router.post("/tenants", status_code=201)
-    async def create_tenant(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_tenant(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         tenant = Tenant(**body)
         db.add(tenant)
         await db.commit()
@@ -35,12 +37,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Plan Endpoints ────────────────────────────────────────
     @router.get("/plans", summary="List tenant plans")
-    async def list_plans(db: AsyncSession = Depends(_get_db)):
+    async def list_plans(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(TenantPlan))
         return result.scalars().all()
 
     @router.post("/plans", status_code=201)
-    async def create_plan(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_plan(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         plan = TenantPlan(**body)
         db.add(plan)
         await db.commit()
@@ -49,7 +51,7 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Platform Stats ────────────────────────────────────────
     @router.get("/platform/stats", summary="Platform-wide SaaS statistics")
-    async def platform_stats(db: AsyncSession = Depends(_get_db)):
+    async def platform_stats(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         total_tenants = (await db.execute(select(func.count(Tenant.id)))).scalar()
         active_tenants = (await db.execute(select(func.count(Tenant.id)).where(Tenant.is_active == True))).scalar()
         return {

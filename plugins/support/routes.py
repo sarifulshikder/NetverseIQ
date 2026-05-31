@@ -5,6 +5,8 @@ from sqlalchemy import select, func, update, delete
 from sqlalchemy.orm import selectinload
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime, timedelta
 import random
 import string
@@ -36,7 +38,7 @@ def get_router(injected_models: Dict[str, Any]):
         priority: Optional[str] = None,
         customer_id: Optional[int] = None,
         db: AsyncSession = Depends(_get_db),
-    ):
+     current_user: User = Depends(get_current_user),):
         query = select(Ticket)
         if status:
             query = query.where(Ticket.status == status)
@@ -51,7 +53,7 @@ def get_router(injected_models: Dict[str, Any]):
         return {"total": total, "items": items}
 
     @router.post("/", status_code=status.HTTP_201_CREATED, summary="Create ticket")
-    async def create_ticket(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_ticket(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         if not body.get("ticket_no"):
             body["ticket_no"] = gen_ticket_no()
             
@@ -77,7 +79,7 @@ def get_router(injected_models: Dict[str, Any]):
         return ticket
 
     @router.get("/stats", summary="Support statistics")
-    async def support_stats(db: AsyncSession = Depends(_get_db)):
+    async def support_stats(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         total = (await db.execute(select(func.count(Ticket.id)))).scalar()
         open_count = (await db.execute(select(func.count(Ticket.id)).where(Ticket.status == "open"))).scalar()
         resolved = (await db.execute(select(func.count(Ticket.id)).where(Ticket.status == "resolved"))).scalar()
@@ -92,7 +94,7 @@ def get_router(injected_models: Dict[str, Any]):
         }
 
     @router.get("/{ticket_id}", summary="Get ticket by ID")
-    async def get_ticket(ticket_id: int, db: AsyncSession = Depends(_get_db)):
+    async def get_ticket(ticket_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(
             select(Ticket)
             .where(Ticket.id == ticket_id)
@@ -104,7 +106,7 @@ def get_router(injected_models: Dict[str, Any]):
         return ticket
 
     @router.post("/{ticket_id}/replies", status_code=201)
-    async def add_reply(ticket_id: int, body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def add_reply(ticket_id: int, body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         reply = TicketReply(ticket_id=ticket_id, **body)
         db.add(reply)
         
@@ -116,7 +118,7 @@ def get_router(injected_models: Dict[str, Any]):
         return reply
 
     @router.post("/{ticket_id}/visits", status_code=201)
-    async def schedule_visit(ticket_id: int, body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def schedule_visit(ticket_id: int, body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         visit = FieldVisit(ticket_id=ticket_id, **body)
         db.add(visit)
         

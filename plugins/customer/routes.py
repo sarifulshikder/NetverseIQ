@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime
 import os
 import shutil
@@ -32,7 +34,7 @@ def get_router(injected_models: Dict[str, Any]):
         customer_type: Optional[str] = None,
         area_zone: Optional[str] = None,
         db: AsyncSession = Depends(_get_db),
-    ):
+     current_user: User = Depends(get_current_user),):
         query = select(Customer)
         
         # Filters
@@ -74,7 +76,7 @@ def get_router(injected_models: Dict[str, Any]):
         return {"total": total, "items": items}
 
     @router.post("/", status_code=status.HTTP_201_CREATED, summary="Create customer")
-    async def create_customer(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_customer(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         # Auto-generate customer_id
         current_year = datetime.now().year
         prefix = f"CUS-{current_year}-"
@@ -111,7 +113,7 @@ def get_router(injected_models: Dict[str, Any]):
         return customer
 
     @router.get("/stats", summary="Customer statistics")
-    async def customer_stats(db: AsyncSession = Depends(_get_db)):
+    async def customer_stats(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         total = (await db.execute(select(func.count(Customer.id)))).scalar()
         active = (await db.execute(select(func.count(Customer.id)).where(Customer.status == "active"))).scalar()
         suspended = (await db.execute(select(func.count(Customer.id)).where(Customer.status == "suspended"))).scalar()
@@ -131,7 +133,7 @@ def get_router(injected_models: Dict[str, Any]):
         }
 
     @router.get("/{customer_id}", summary="Get customer by ID")
-    async def get_customer(customer_id: int, db: AsyncSession = Depends(_get_db)):
+    async def get_customer(customer_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(
             select(Customer)
             .where(Customer.id == customer_id)
@@ -142,7 +144,7 @@ def get_router(injected_models: Dict[str, Any]):
         return c
 
     @router.get("/{customer_id}/timeline", summary="Customer timeline")
-    async def get_customer_timeline(customer_id: int, db: AsyncSession = Depends(_get_db)):
+    async def get_customer_timeline(customer_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         from core.models.activity_log import ActivityLog
         result = await db.execute(
             select(ActivityLog)
@@ -152,7 +154,7 @@ def get_router(injected_models: Dict[str, Any]):
         return result.scalars().all()
 
     @router.get("/{customer_id}/documents", summary="Get customer documents")
-    async def get_customer_documents(customer_id: int, db: AsyncSession = Depends(_get_db)):
+    async def get_customer_documents(customer_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(CustomerDocument).where(CustomerDocument.customer_id == customer_id))
         return result.scalars().all()
 
@@ -163,7 +165,7 @@ def get_router(injected_models: Dict[str, Any]):
         file: UploadFile = File(...), 
         expiry_date: Optional[str] = None,
         db: AsyncSession = Depends(_get_db)
-    ):
+    , current_user: User = Depends(get_current_user)):
         # Save file logic (minimal)
         upload_dir = f"uploads/customers/{customer_id}/docs"
         os.makedirs(upload_dir, exist_ok=True)
@@ -187,7 +189,7 @@ def get_router(injected_models: Dict[str, Any]):
         return doc
 
     @router.put("/{customer_id}", summary="Update customer")
-    async def update_customer(customer_id: int, body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def update_customer(customer_id: int, body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Customer).where(Customer.id == customer_id))
         c = result.scalar_one_or_none()
         if not c:
@@ -208,7 +210,7 @@ def get_router(injected_models: Dict[str, Any]):
         return c
 
     @router.delete("/{customer_id}", status_code=status.HTTP_204_NO_CONTENT)
-    async def delete_customer(customer_id: int, db: AsyncSession = Depends(_get_db)):
+    async def delete_customer(customer_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Customer).where(Customer.id == customer_id))
         c = result.scalar_one_or_none()
         if not c:

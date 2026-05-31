@@ -1,6 +1,7 @@
+from decimal import Decimal
 """HRM Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, Float, ForeignKey, Enum, Date
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, ForeignKey, Enum, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 import enum
@@ -49,7 +50,7 @@ def register_models(Base):
         join_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
         status: Mapped[EmployeeStatus] = mapped_column(Enum(EmployeeStatus), default=EmployeeStatus.active)
         
-        salary_basic: Mapped[float] = mapped_column(Float, default=0.0)
+        salary_basic: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
         
         created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
         
@@ -84,7 +85,7 @@ def register_models(Base):
         employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))
         month: Mapped[int] = mapped_column(Integer)
         year: Mapped[int] = mapped_column(Integer)
-        amount_paid: Mapped[float] = mapped_column(Float)
+        amount_paid: Mapped[Decimal] = mapped_column(Numeric(12, 2))
         paid_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     return {

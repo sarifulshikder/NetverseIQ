@@ -1,6 +1,7 @@
 """Subscription Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, Float, ForeignKey, Enum
+from decimal import Decimal
+from sqlalchemy import String, Boolean, DateTime, Text, Integer, Float, ForeignKey, Enum, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 import enum
@@ -35,7 +36,7 @@ def register_models(Base):
         end_date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
         billing_date: Mapped[Optional[int]] = mapped_column(Integer, default=1) # Day of month
         
-        monthly_price: Mapped[float] = mapped_column(Float, default=0.0)
+        monthly_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
         auto_renew: Mapped[bool] = mapped_column(Boolean, default=True)
         
         # Technical
@@ -69,7 +70,7 @@ def register_models(Base):
         id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
         subscription_id: Mapped[int] = mapped_column(ForeignKey("subscriptions.id"))
         addon_id: Mapped[int] = mapped_column(Integer) # Linked to package_addons.id
-        price: Mapped[float] = mapped_column(Float)
+        price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
         is_active: Mapped[bool] = mapped_column(Boolean, default=True)
         created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
         

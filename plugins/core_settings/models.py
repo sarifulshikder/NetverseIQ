@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Core Settings Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, JSON
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from typing import Optional
 

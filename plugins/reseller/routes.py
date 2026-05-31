@@ -5,6 +5,8 @@ from sqlalchemy import select, func, update, delete
 from sqlalchemy.orm import selectinload
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime
 
 router = APIRouter(prefix="/api/p/reseller", tags=["Plugin: Reseller"])
@@ -22,12 +24,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Reseller Endpoints ────────────────────────────────────
     @router.get("/", summary="List all resellers")
-    async def list_resellers(db: AsyncSession = Depends(_get_db)):
+    async def list_resellers(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Reseller).options(selectinload(Reseller.wallet)))
         return result.scalars().all()
 
     @router.post("/", status_code=201)
-    async def create_reseller(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_reseller(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         reseller = Reseller(**body)
         db.add(reseller)
         await db.flush() # Get ID
@@ -42,7 +44,7 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Wallet Endpoints ──────────────────────────────────────
     @router.post("/{reseller_id}/wallet/recharge", summary="Recharge reseller wallet")
-    async def recharge_wallet(reseller_id: int, amount: float, db: AsyncSession = Depends(_get_db)):
+    async def recharge_wallet(reseller_id: int, amount: float, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(ResellerWallet).where(ResellerWallet.reseller_id == reseller_id))
         wallet = result.scalar_one_or_none()
         if not wallet:
@@ -55,12 +57,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Customer Endpoints ────────────────────────────────────
     @router.get("/{reseller_id}/customers", summary="List reseller customers")
-    async def list_reseller_customers(reseller_id: int, db: AsyncSession = Depends(_get_db)):
+    async def list_reseller_customers(reseller_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(ResellerCustomer).where(ResellerCustomer.reseller_id == reseller_id))
         return result.scalars().all()
 
     @router.post("/{reseller_id}/customers", status_code=201)
-    async def assign_customer(reseller_id: int, customer_id: int, db: AsyncSession = Depends(_get_db)):
+    async def assign_customer(reseller_id: int, customer_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         mapping = ResellerCustomer(reseller_id=reseller_id, customer_id=customer_id)
         db.add(mapping)
         await db.commit()

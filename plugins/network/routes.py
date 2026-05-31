@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, update, delete
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime
 
 router = APIRouter(prefix="/api/p/network", tags=["Plugin: Network"])
@@ -24,12 +26,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── NAS Device Endpoints ──────────────────────────────────
     @router.get("/nas", summary="List all NAS devices")
-    async def list_nas(db: AsyncSession = Depends(_get_db)):
+    async def list_nas(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(NASDevice))
         return result.scalars().all()
 
     @router.post("/nas", status_code=201)
-    async def create_nas(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_nas(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         nas = NASDevice(**body)
         db.add(nas)
         await db.commit()
@@ -37,18 +39,18 @@ def get_router(injected_models: Dict[str, Any]):
         return nas
 
     @router.get("/nas/{nas_id}/test", summary="Test NAS connection")
-    async def test_nas_connection(nas_id: int, db: AsyncSession = Depends(_get_db)):
+    async def test_nas_connection(nas_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         # Placeholder for actual MikroTik/SNMP test
         return {"status": "success", "message": f"Connection to NAS {nas_id} successful (mock)"}
 
     # ── IP Pool Endpoints ─────────────────────────────────────
     @router.get("/ip-pools", summary="List all IP pools")
-    async def list_ip_pools(db: AsyncSession = Depends(_get_db)):
+    async def list_ip_pools(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(IPPool))
         return result.scalars().all()
 
     @router.post("/ip-pools", status_code=201)
-    async def create_ip_pool(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_ip_pool(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         pool = IPPool(**body)
         db.add(pool)
         await db.commit()
@@ -56,7 +58,7 @@ def get_router(injected_models: Dict[str, Any]):
         return pool
 
     @router.get("/ip-pools/{pool_id}/stats", summary="IP pool usage stats")
-    async def ip_pool_stats(pool_id: int, db: AsyncSession = Depends(_get_db)):
+    async def ip_pool_stats(pool_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         total_assignments = (await db.execute(
             select(func.count(IPAssignment.id)).where(IPAssignment.pool_id == pool_id)
         )).scalar()
@@ -64,12 +66,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Network Node Endpoints ────────────────────────────────
     @router.get("/nodes", summary="List all network nodes")
-    async def list_nodes(db: AsyncSession = Depends(_get_db)):
+    async def list_nodes(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(NetworkNode))
         return result.scalars().all()
 
     @router.post("/nodes", status_code=201)
-    async def create_node(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_node(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         node = NetworkNode(**body)
         db.add(node)
         await db.commit()
@@ -78,12 +80,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Outage Endpoints ──────────────────────────────────────
     @router.get("/outages", summary="List all outages")
-    async def list_outages(db: AsyncSession = Depends(_get_db)):
+    async def list_outages(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(NetworkOutage).order_by(NetworkOutage.start_time.desc()))
         return result.scalars().all()
 
     @router.post("/outages", status_code=201)
-    async def report_outage(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def report_outage(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         outage = NetworkOutage(**body)
         db.add(outage)
         await db.commit()
@@ -91,7 +93,7 @@ def get_router(injected_models: Dict[str, Any]):
         return outage
 
     @router.put("/outages/{outage_id}/resolve", summary="Resolve outage")
-    async def resolve_outage(outage_id: int, db: AsyncSession = Depends(_get_db)):
+    async def resolve_outage(outage_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(NetworkOutage).where(NetworkOutage.id == outage_id))
         outage = result.scalar_one_or_none()
         if not outage:

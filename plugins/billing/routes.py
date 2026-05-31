@@ -8,6 +8,9 @@ from datetime import datetime
 import random
 import string
 
+from api.deps import get_current_user
+from models.user import User
+
 router = APIRouter(prefix="/api/p/billing", tags=["Plugin: Billing"])
 
 # Models will be injected via get_router
@@ -34,6 +37,7 @@ def get_router(injected_models: Dict[str, Any]):
         status: Optional[str] = None,
         customer_id: Optional[int] = None,
         db: AsyncSession = Depends(_get_db),
+        current_user: User = Depends(get_current_user),
     ):
         query = select(Invoice)
         if status:
@@ -47,14 +51,18 @@ def get_router(injected_models: Dict[str, Any]):
         return {"total": total, "items": items}
 
     @router.post("/invoices", status_code=status.HTTP_201_CREATED, summary="Create invoice")
-    async def create_invoice(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_invoice(
+        body: Dict[str, Any], 
+        db: AsyncSession = Depends(_get_db),
+        current_user: User = Depends(get_current_user),
+    ):
         items_data = body.pop("items", [])
         
         if not body.get("invoice_number"):
             body["invoice_number"] = gen_invoice_number()
             
         # Handle enum
-        from .models import InvoiceStatus
+        from billing.models import InvoiceStatus
         if "status" in body and isinstance(body["status"], str):
             body["status"] = InvoiceStatus(body["status"])
 
@@ -81,7 +89,10 @@ def get_router(injected_models: Dict[str, Any]):
         return invoice
 
     @router.get("/stats", summary="Billing statistics")
-    async def billing_stats(db: AsyncSession = Depends(_get_db)):
+    async def billing_stats(
+        db: AsyncSession = Depends(_get_db),
+        current_user: User = Depends(get_current_user),
+    ):
         total_invoices = (await db.execute(select(func.count(Invoice.id)))).scalar()
         paid = (await db.execute(select(func.count(Invoice.id)).where(Invoice.status == "paid"))).scalar()
         unpaid = (await db.execute(select(func.count(Invoice.id)).where(Invoice.status == "unpaid"))).scalar()
@@ -101,7 +112,11 @@ def get_router(injected_models: Dict[str, Any]):
         }
 
     @router.get("/invoices/{invoice_id}", summary="Get invoice by ID")
-    async def get_invoice(invoice_id: int, db: AsyncSession = Depends(_get_db)):
+    async def get_invoice(
+        invoice_id: int, 
+        db: AsyncSession = Depends(_get_db),
+        current_user: User = Depends(get_current_user),
+    ):
         from sqlalchemy.orm import selectinload
         result = await db.execute(
             select(Invoice)
@@ -114,7 +129,10 @@ def get_router(injected_models: Dict[str, Any]):
         return inv
 
     @router.get("/invoices/{invoice_id}/pdf", summary="Generate Invoice PDF")
-    async def get_invoice_pdf(invoice_id: int):
+    async def get_invoice_pdf(
+        invoice_id: int,
+        current_user: User = Depends(get_current_user),
+    ):
         # Placeholder for actual PDF generation
         return {"status": "success", "message": f"PDF generated for invoice {invoice_id} (mock)"}
 

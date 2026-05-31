@@ -5,6 +5,8 @@ from sqlalchemy import select, func, update, delete
 from sqlalchemy.orm import selectinload
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime
 
 router = APIRouter(prefix="/api/p/expense", tags=["Plugin: Expense"])
@@ -28,7 +30,7 @@ def get_router(injected_models: Dict[str, Any]):
         limit: int = 50,
         category_id: Optional[int] = None,
         db: AsyncSession = Depends(_get_db),
-    ):
+     current_user: User = Depends(get_current_user),):
         query = select(Expense).options(selectinload(Expense.category))
         if category_id:
             query = query.where(Expense.category_id == category_id)
@@ -36,7 +38,7 @@ def get_router(injected_models: Dict[str, Any]):
         return result.scalars().all()
 
     @router.post("/", status_code=status.HTTP_201_CREATED)
-    async def create_expense(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_expense(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         from .models import ApprovalStatus
         if "approval_status" in body and isinstance(body["approval_status"], str):
             body["approval_status"] = ApprovalStatus(body["approval_status"])
@@ -48,7 +50,7 @@ def get_router(injected_models: Dict[str, Any]):
         return expense
 
     @router.get("/stats", summary="Expense statistics")
-    async def expense_stats(db: AsyncSession = Depends(_get_db)):
+    async def expense_stats(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         total = (await db.execute(select(func.sum(Expense.amount)))).scalar() or 0
         
         # Breakdown by category
@@ -62,12 +64,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Category Endpoints ────────────────────────────────────
     @router.get("/categories", summary="List expense categories")
-    async def list_categories(db: AsyncSession = Depends(_get_db)):
+    async def list_categories(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(ExpenseCategory))
         return result.scalars().all()
 
     @router.post("/categories", status_code=201)
-    async def create_category(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_category(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         cat = ExpenseCategory(**body)
         db.add(cat)
         await db.commit()
@@ -76,12 +78,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Budget Endpoints ──────────────────────────────────────
     @router.get("/budgets", summary="List budgets")
-    async def list_budgets(db: AsyncSession = Depends(_get_db)):
+    async def list_budgets(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Budget))
         return result.scalars().all()
 
     @router.post("/budgets", status_code=201)
-    async def create_budget(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_budget(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         budget = Budget(**body)
         db.add(budget)
         await db.commit()

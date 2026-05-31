@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, update, delete
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime
 import secrets
 
@@ -21,12 +23,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── API Key Endpoints ─────────────────────────────────────
     @router.get("/keys", summary="List all API keys")
-    async def list_api_keys(db: AsyncSession = Depends(_get_db)):
+    async def list_api_keys(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(APIKey))
         return result.scalars().all()
 
     @router.post("/keys", status_code=201)
-    async def generate_api_key(name: str, db: AsyncSession = Depends(_get_db)):
+    async def generate_api_key(name: str, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         new_key = secrets.token_urlsafe(32)
         api_key = APIKey(name=name, api_key=new_key)
         db.add(api_key)
@@ -36,12 +38,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Webhook Endpoints ─────────────────────────────────────
     @router.get("/webhooks", summary="List all webhooks")
-    async def list_webhooks(db: AsyncSession = Depends(_get_db)):
+    async def list_webhooks(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Webhook))
         return result.scalars().all()
 
     @router.post("/webhooks", status_code=201)
-    async def register_webhook(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def register_webhook(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         webhook = Webhook(**body)
         db.add(webhook)
         await db.commit()
@@ -50,7 +52,7 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Third-party Integrations ──────────────────────────────
     @router.get("/integrations/status", summary="Check third-party connection status")
-    async def check_integrations():
+    async def check_integrations(current_user: User = Depends(get_current_user)):
         return {
             "whatsapp": "connected",
             "bkash_api": "connected",

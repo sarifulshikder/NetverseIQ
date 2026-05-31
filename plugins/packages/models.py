@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Packages Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, Float, ForeignKey
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, Float, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 
@@ -28,10 +29,10 @@ def register_models(Base):
         upload_speed_mbps: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
         
         # Pricing
-        price: Mapped[float] = mapped_column(Float, nullable=False)
-        installation_fee: Mapped[float] = mapped_column(Float, default=0.0)
-        security_deposit: Mapped[float] = mapped_column(Float, default=0.0)
-        vat_percentage: Mapped[float] = mapped_column(Float, default=15.0)
+        price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+        installation_fee: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
+        security_deposit: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
+        vat_percentage: Mapped[Decimal] = mapped_column(Numeric(5, 2), default=15.0)
         
         validity_days: Mapped[int] = mapped_column(Integer, default=30)
         
@@ -42,7 +43,7 @@ def register_models(Base):
         radius_profile: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
         
         # Reseller
-        reseller_price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+        reseller_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
         
         created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
         updated_at: Mapped[datetime] = mapped_column(
@@ -58,8 +59,8 @@ def register_models(Base):
         package_id: Mapped[int] = mapped_column(ForeignKey("isp_packages.id"))
         name: Mapped[str] = mapped_column(String(128))
         promo_code: Mapped[Optional[str]] = mapped_column(String(64), unique=True, index=True)
-        discount_amount: Mapped[float] = mapped_column(Float, default=0.0)
-        discount_percentage: Mapped[float] = mapped_column(Float, default=0.0)
+        discount_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
+        discount_percentage: Mapped[Decimal] = mapped_column(Numeric(5, 2), default=0)
         start_date: Mapped[datetime] = mapped_column(DateTime)
         end_date: Mapped[datetime] = mapped_column(DateTime)
         is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -70,7 +71,7 @@ def register_models(Base):
         __tablename__ = "package_addons"
         id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
         name: Mapped[str] = mapped_column(String(128))
-        price: Mapped[float] = mapped_column(Float)
+        price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
         description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
         is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 

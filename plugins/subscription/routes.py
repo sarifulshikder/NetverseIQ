@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, update, delete
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/p/subscription", tags=["Plugin: Subscription"])
@@ -26,7 +28,7 @@ def get_router(injected_models: Dict[str, Any]):
         limit: int = 50,
         status: Optional[str] = None,
         db: AsyncSession = Depends(_get_db),
-    ):
+     current_user: User = Depends(get_current_user),):
         query = select(Subscription)
         if status:
             query = query.where(Subscription.status == status)
@@ -36,7 +38,7 @@ def get_router(injected_models: Dict[str, Any]):
         return {"total": total, "items": items}
 
     @router.post("/", status_code=status.HTTP_201_CREATED, summary="Create subscription")
-    async def create_subscription(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_subscription(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         from .models import SubscriptionStatus
         if "status" in body and isinstance(body["status"], str):
             body["status"] = SubscriptionStatus(body["status"])
@@ -58,7 +60,7 @@ def get_router(injected_models: Dict[str, Any]):
         return sub
 
     @router.get("/stats", summary="Subscription statistics")
-    async def subscription_stats(db: AsyncSession = Depends(_get_db)):
+    async def subscription_stats(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         total = (await db.execute(select(func.count(Subscription.id)))).scalar()
         active = (await db.execute(select(func.count(Subscription.id)).where(Subscription.status == "active"))).scalar()
         suspended = (await db.execute(select(func.count(Subscription.id)).where(Subscription.status == "suspended"))).scalar()
@@ -81,7 +83,7 @@ def get_router(injected_models: Dict[str, Any]):
         }
 
     @router.get("/{sub_id}", summary="Get subscription by ID")
-    async def get_subscription(sub_id: int, db: AsyncSession = Depends(_get_db)):
+    async def get_subscription(sub_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Subscription).where(Subscription.id == sub_id))
         sub = result.scalar_one_or_none()
         if not sub:
@@ -89,12 +91,12 @@ def get_router(injected_models: Dict[str, Any]):
         return sub
 
     @router.get("/{sub_id}/history", summary="Subscription history")
-    async def get_subscription_history(sub_id: int, db: AsyncSession = Depends(_get_db)):
+    async def get_subscription_history(sub_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(SubscriptionHistory).where(SubscriptionHistory.subscription_id == sub_id).order_by(SubscriptionHistory.created_at.desc()))
         return result.scalars().all()
 
     @router.post("/{sub_id}/upgrade", summary="Upgrade/Change package")
-    async def upgrade_subscription(sub_id: int, body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def upgrade_subscription(sub_id: int, body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Subscription).where(Subscription.id == sub_id))
         sub = result.scalar_one_or_none()
         if not sub:
@@ -123,7 +125,7 @@ def get_router(injected_models: Dict[str, Any]):
         return sub
 
     @router.put("/{sub_id}", summary="Update subscription")
-    async def update_subscription(sub_id: int, body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def update_subscription(sub_id: int, body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Subscription).where(Subscription.id == sub_id))
         sub = result.scalar_one_or_none()
         if not sub:

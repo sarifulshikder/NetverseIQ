@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Payment Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, Float, ForeignKey, JSON
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, Float, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 
@@ -14,7 +15,7 @@ def register_models(Base):
         customer_id: Mapped[int] = mapped_column(Integer, index=True)
         invoice_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
         
-        amount: Mapped[float] = mapped_column(Float)
+        amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
         method: Mapped[str] = mapped_column(String(64)) # Cash, bKash, Card, etc.
         transaction_id: Mapped[Optional[str]] = mapped_column(String(128), unique=True, index=True)
         
@@ -27,15 +28,15 @@ def register_models(Base):
         __tablename__ = "advance_payments"
         id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
         customer_id: Mapped[int] = mapped_column(Integer, index=True)
-        amount: Mapped[float] = mapped_column(Float)
-        balance: Mapped[float] = mapped_column(Float)
+        amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+        balance: Mapped[Decimal] = mapped_column(Numeric(12, 2))
         created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     class Refund(Base):
         __tablename__ = "refunds"
         id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
         payment_id: Mapped[int] = mapped_column(ForeignKey("payments.id"))
-        amount: Mapped[float] = mapped_column(Float)
+        amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
         reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
         status: Mapped[str] = mapped_column(String(32), default="pending")
         created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

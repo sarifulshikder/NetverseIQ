@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Customer Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, Enum, Float, ForeignKey
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 import enum
@@ -50,7 +51,7 @@ def register_models(Base):
             Enum(CustomerStatus), default=CustomerStatus.pending
         )
         package_name: Mapped[str] = mapped_column(String(128), default="")
-        monthly_fee: Mapped[float] = mapped_column(default=0.0)
+        monthly_fee: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
         ip_address: Mapped[str] = mapped_column(String(45), default="")
         mac_address: Mapped[str] = mapped_column(String(32), default="")
         

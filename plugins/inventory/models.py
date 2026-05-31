@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Inventory Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, Float, ForeignKey, Enum, JSON
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, ForeignKey, Enum, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 import enum
@@ -32,7 +33,7 @@ def register_models(Base):
         model: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
         
         category_id: Mapped[Optional[int]] = mapped_column(ForeignKey("product_categories.id"), nullable=True)
-        unit_price: Mapped[float] = mapped_column(Float, default=0.0)
+        unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
         
         min_stock_level: Mapped[int] = mapped_column(Integer, default=5)
         

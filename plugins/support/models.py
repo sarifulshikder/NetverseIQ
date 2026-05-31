@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Support Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, ForeignKey, Enum
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 import enum

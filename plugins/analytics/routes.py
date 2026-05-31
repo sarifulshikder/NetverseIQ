@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/p/analytics", tags=["Plugin: Analytics"])
@@ -16,7 +18,7 @@ def get_router(injected_models: Dict[str, Any]):
     models = injected_models
     
     @router.get("/dashboard", summary="Main dashboard KPIs")
-    async def dashboard_kpis(db: AsyncSession = Depends(_get_db)):
+    async def dashboard_kpis(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         kpis = {}
         try:
             # Aggregate from other plugins via raw SQL for efficiency
@@ -38,7 +40,7 @@ def get_router(injected_models: Dict[str, Any]):
         return kpis
 
     @router.get("/revenue-trend", summary="Revenue trend (last 12 months)")
-    async def revenue_trend(db: AsyncSession = Depends(_get_db)):
+    async def revenue_trend(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         try:
             rows = await db.execute(text("""
                 SELECT TO_CHAR(created_at, 'YYYY-MM') AS month, SUM(total) 
@@ -50,7 +52,7 @@ def get_router(injected_models: Dict[str, Any]):
             return []
 
     @router.get("/business-metrics", summary="Get specific metrics (MRR, CLV)")
-    async def business_metrics(db: AsyncSession = Depends(_get_db)):
+    async def business_metrics(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         # Mock calculation
         return {
             "mrr": 45000,

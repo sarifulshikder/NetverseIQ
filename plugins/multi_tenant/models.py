@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Multi-Tenant Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, JSON, ForeignKey, Float
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, JSON, ForeignKey, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 
@@ -15,7 +16,7 @@ def register_models(Base):
         
         max_customers: Mapped[int] = mapped_column(Integer, default=100)
         max_nas: Mapped[int] = mapped_column(Integer, default=1)
-        monthly_price: Mapped[float] = mapped_column(Float, default=0.0)
+        monthly_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0.0)
         
         features: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True) # {"radius": True, "hrm": False}
 

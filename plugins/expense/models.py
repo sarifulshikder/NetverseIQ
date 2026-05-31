@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Expense Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, Float, ForeignKey, Enum
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, Float, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 import enum
@@ -31,7 +32,7 @@ def register_models(Base):
         title: Mapped[str] = mapped_column(String(256), index=True)
         category_id: Mapped[int] = mapped_column(ForeignKey("expense_categories.id"))
         
-        amount: Mapped[float] = mapped_column(Float, default=0.0)
+        amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0.0)
         date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
         
         payment_method: Mapped[str] = mapped_column(String(64), default="Cash")
@@ -50,7 +51,7 @@ def register_models(Base):
         __tablename__ = "budgets"
         id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
         category_id: Mapped[int] = mapped_column(ForeignKey("expense_categories.id"))
-        amount: Mapped[float] = mapped_column(Float)
+        amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
         period: Mapped[str] = mapped_column(String(32), default="monthly") # monthly, yearly
         year: Mapped[int] = mapped_column(Integer)
         month: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)

@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/p/reporting", tags=["Plugin: Reporting"])
@@ -17,7 +19,7 @@ def get_router(injected_models: Dict[str, Any]):
     
     # ── Financial Reports ─────────────────────────────────────
     @router.get("/financial/summary", summary="Aggregate financial summary")
-    async def get_financial_summary(db: AsyncSession = Depends(_get_db)):
+    async def get_financial_summary(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         # In a real app, we'd query billing and expense models
         return {
             "total_revenue": 500000,
@@ -28,7 +30,7 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Customer Reports ──────────────────────────────────────
     @router.get("/customers/growth", summary="Customer growth over time")
-    async def get_customer_growth(db: AsyncSession = Depends(_get_db)):
+    async def get_customer_growth(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         return {
             "labels": ["Jan", "Feb", "Mar", "Apr", "May"],
             "data": [100, 150, 210, 300, 450]
@@ -36,7 +38,7 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Support Reports ───────────────────────────────────────
     @router.get("/support/performance", summary="Support team performance")
-    async def get_support_performance(db: AsyncSession = Depends(_get_db)):
+    async def get_support_performance(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         return {
             "avg_resolution_time": "4.5 hours",
             "sla_compliance": "98%",
@@ -49,7 +51,7 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Export ────────────────────────────────────────────────
     @router.get("/export/{report_type}", summary="Export report to CSV/PDF")
-    async def export_report(report_type: str):
+    async def export_report(report_type: str, current_user: User = Depends(get_current_user)):
         return {"status": "success", "message": f"Report {report_type} exported (mock)"}
 
     return router

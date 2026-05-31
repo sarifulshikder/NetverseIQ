@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, update, delete
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime
 
 router = APIRouter(prefix="/api/p/payment", tags=["Plugin: Payment"])
@@ -26,7 +28,7 @@ def get_router(injected_models: Dict[str, Any]):
         limit: int = 50,
         customer_id: Optional[int] = None,
         db: AsyncSession = Depends(_get_db),
-    ):
+     current_user: User = Depends(get_current_user),):
         query = select(Payment)
         if customer_id:
             query = query.where(Payment.customer_id == customer_id)
@@ -36,7 +38,7 @@ def get_router(injected_models: Dict[str, Any]):
         return {"total": total, "items": items}
 
     @router.post("/", status_code=status.HTTP_201_CREATED, summary="Process payment")
-    async def process_payment(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def process_payment(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         # Handle invoice linking logic
         invoice_id = body.get("invoice_id")
         
@@ -69,7 +71,7 @@ def get_router(injected_models: Dict[str, Any]):
         return payment
 
     @router.get("/stats", summary="Payment statistics")
-    async def payment_stats(db: AsyncSession = Depends(_get_db)):
+    async def payment_stats(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         total_collected = (await db.execute(select(func.sum(Payment.amount)))).scalar() or 0
         
         # Breakdown by method
@@ -83,7 +85,7 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Refund Endpoints ──────────────────────────────────────
     @router.post("/refunds", status_code=201)
-    async def request_refund(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def request_refund(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         refund = Refund(**body)
         db.add(refund)
         await db.commit()

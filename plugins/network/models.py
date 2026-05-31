@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Network Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, ForeignKey, JSON, Float
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, ForeignKey, JSON, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 

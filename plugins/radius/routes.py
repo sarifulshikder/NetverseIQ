@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, update, delete, or_
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime
 
 router = APIRouter(prefix="/api/p/radius", tags=["Plugin: Radius"])
@@ -23,7 +25,7 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Session Management Endpoints ──────────────────────────
     @router.get("/sessions/online", summary="List online users")
-    async def list_online_users(db: AsyncSession = Depends(_get_db)):
+    async def list_online_users(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(
             select(RadAcct)
             .where(RadAcct.acctstoptime == None)
@@ -37,7 +39,7 @@ def get_router(injected_models: Dict[str, Any]):
         skip: int = 0, 
         limit: int = 50, 
         db: AsyncSession = Depends(_get_db)
-    ):
+    , current_user: User = Depends(get_current_user)):
         query = select(RadAcct)
         if username:
             query = query.where(RadAcct.username == username)
@@ -46,12 +48,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── User Attribute Endpoints ──────────────────────────────
     @router.get("/users/{username}/check", summary="Get user check attributes")
-    async def get_user_check(username: str, db: AsyncSession = Depends(_get_db)):
+    async def get_user_check(username: str, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(RadCheck).where(RadCheck.username == username))
         return result.scalars().all()
 
     @router.post("/users/{username}/check", status_code=201)
-    async def add_user_check(username: str, body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def add_user_check(username: str, body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         attr = RadCheck(username=username, **body)
         db.add(attr)
         await db.commit()
@@ -59,19 +61,19 @@ def get_router(injected_models: Dict[str, Any]):
         return attr
 
     @router.get("/users/{username}/reply", summary="Get user reply attributes")
-    async def get_user_reply(username: str, db: AsyncSession = Depends(_get_db)):
+    async def get_user_reply(username: str, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(RadReply).where(RadReply.username == username))
         return result.scalars().all()
 
     # ── NAS Endpoints (FreeRADIUS internal) ───────────────────
     @router.get("/nas", summary="List RADIUS NAS clients")
-    async def list_radius_nas(db: AsyncSession = Depends(_get_db)):
+    async def list_radius_nas(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Nas))
         return result.scalars().all()
 
     # ── Statistics ────────────────────────────────────────────
     @router.get("/stats", summary="RADIUS statistics")
-    async def radius_stats(db: AsyncSession = Depends(_get_db)):
+    async def radius_stats(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         total_users = (await db.execute(select(func.count(func.distinct(RadCheck.username))))).scalar()
         online_users = (await db.execute(select(func.count(RadAcct.radacctid)).where(RadAcct.acctstoptime == None))).scalar()
         return {

@@ -5,6 +5,8 @@ from sqlalchemy import select, func, update, delete
 from sqlalchemy.orm import selectinload
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime
 
 router = APIRouter(prefix="/api/p/hrm", tags=["Plugin: Hrm"])
@@ -25,14 +27,14 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Employee Endpoints ────────────────────────────────────
     @router.get("/employees", summary="List all employees")
-    async def list_employees(db: AsyncSession = Depends(_get_db)):
+    async def list_employees(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(
             select(Employee).options(selectinload(Employee.department), selectinload(Employee.designation))
         )
         return result.scalars().all()
 
     @router.post("/employees", status_code=201)
-    async def create_employee(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_employee(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         from .models import EmployeeStatus
         if "status" in body and isinstance(body["status"], str):
             body["status"] = EmployeeStatus(body["status"])
@@ -45,7 +47,7 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Attendance Endpoints ──────────────────────────────────
     @router.get("/attendance", summary="List attendance")
-    async def list_attendance(date: Optional[str] = None, db: AsyncSession = Depends(_get_db)):
+    async def list_attendance(date: Optional[str] = None, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         query = select(Attendance).options(selectinload(Attendance.employee))
         if date:
             query = query.where(Attendance.date == datetime.fromisoformat(date).date())
@@ -53,7 +55,7 @@ def get_router(injected_models: Dict[str, Any]):
         return result.scalars().all()
 
     @router.post("/attendance/check-in", status_code=201)
-    async def check_in(employee_id: int, db: AsyncSession = Depends(_get_db)):
+    async def check_in(employee_id: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         today = datetime.utcnow().date()
         # Check if already checked in
         result = await db.execute(
@@ -71,12 +73,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Leave Endpoints ───────────────────────────────────────
     @router.get("/leaves", summary="List leave applications")
-    async def list_leaves(db: AsyncSession = Depends(_get_db)):
+    async def list_leaves(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Leave))
         return result.scalars().all()
 
     @router.post("/leaves", status_code=201)
-    async def apply_leave(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def apply_leave(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         from .models import LeaveStatus
         leave = Leave(**body)
         db.add(leave)
@@ -86,12 +88,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Salary/Payroll Endpoints ──────────────────────────────
     @router.get("/salaries", summary="List salary payments")
-    async def list_salaries(db: AsyncSession = Depends(_get_db)):
+    async def list_salaries(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Salary))
         return result.scalars().all()
 
     @router.post("/salaries/generate", status_code=201)
-    async def generate_salary(employee_id: int, month: int, year: int, db: AsyncSession = Depends(_get_db)):
+    async def generate_salary(employee_id: int, month: int, year: int, db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         # Mock logic to generate salary from basic
         result = await db.execute(select(Employee).where(Employee.id == employee_id))
         emp = result.scalar_one_or_none()

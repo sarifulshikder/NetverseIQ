@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Analytics Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, Float, JSON
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from typing import List, Optional
 
@@ -12,7 +13,7 @@ def register_models(Base):
         __tablename__ = "business_metrics"
         id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
         metric_name: Mapped[str] = mapped_column(String(128), index=True) # ARPU, MRR, Churn
-        metric_value: Mapped[float] = mapped_column(Float)
+        metric_value: Mapped[Decimal] = mapped_column(Numeric(12, 2))
         period_start: Mapped[datetime] = mapped_column(DateTime)
         period_end: Mapped[datetime] = mapped_column(DateTime)
         

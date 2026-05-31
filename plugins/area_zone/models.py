@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Area Zone Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, ForeignKey, JSON
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 

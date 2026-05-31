@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Reseller Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, Float, ForeignKey, JSON
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 
@@ -18,7 +19,7 @@ def register_models(Base):
         phone: Mapped[str] = mapped_column(String(32))
         
         commission_type: Mapped[str] = mapped_column(String(32), default="percentage") # percentage, fixed
-        commission_value: Mapped[float] = mapped_column(Float, default=10.0)
+        commission_value: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=10)
         
         is_active: Mapped[bool] = mapped_column(Boolean, default=True)
         created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -35,7 +36,7 @@ def register_models(Base):
         __tablename__ = "reseller_wallets"
         id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
         reseller_id: Mapped[int] = mapped_column(ForeignKey("resellers.id"))
-        balance: Mapped[float] = mapped_column(Float, default=0.0)
+        balance: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
         
         reseller = relationship("Reseller", back_populates="wallet")
 
@@ -44,7 +45,7 @@ def register_models(Base):
         id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
         reseller_id: Mapped[int] = mapped_column(ForeignKey("resellers.id"))
         package_id: Mapped[int] = mapped_column(Integer) # Linked to isp_packages.id
-        custom_price: Mapped[float] = mapped_column(Float)
+        custom_price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
 
     return {
         "Reseller": Reseller,

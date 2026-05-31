@@ -5,6 +5,8 @@ from sqlalchemy import select, func, update, delete
 from sqlalchemy.orm import selectinload
 from typing import List, Optional, Dict, Any
 from database import get_db as _get_db
+from api.deps import get_current_user
+from models.user import User
 from datetime import datetime
 
 router = APIRouter(prefix="/api/p/inventory", tags=["Plugin: Inventory"])
@@ -25,12 +27,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Product Endpoints ─────────────────────────────────────
     @router.get("/products", summary="List all products")
-    async def list_products(db: AsyncSession = Depends(_get_db)):
+    async def list_products(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Product).options(selectinload(Product.category)))
         return result.scalars().all()
 
     @router.post("/products", status_code=201)
-    async def create_product(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def create_product(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         product = Product(**body)
         db.add(product)
         await db.commit()
@@ -39,12 +41,12 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Stock Endpoints ───────────────────────────────────────
     @router.get("/stock", summary="List stock levels")
-    async def list_stock(db: AsyncSession = Depends(_get_db)):
+    async def list_stock(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         result = await db.execute(select(Stock).options(selectinload(Stock.product), selectinload(Stock.warehouse)))
         return result.scalars().all()
 
     @router.post("/stock/move", status_code=201)
-    async def move_stock(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def move_stock(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         from .models import StockAction
         product_id = body["product_id"]
         warehouse_id = body["warehouse_id"]
@@ -78,7 +80,7 @@ def get_router(injected_models: Dict[str, Any]):
 
     # ── Assignment Endpoints ──────────────────────────────────
     @router.post("/assignments", status_code=201)
-    async def assign_equipment(body: Dict[str, Any], db: AsyncSession = Depends(_get_db)):
+    async def assign_equipment(body: Dict[str, Any], db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         assignment = EquipmentAssignment(**body)
         db.add(assignment)
         
@@ -89,7 +91,7 @@ def get_router(injected_models: Dict[str, Any]):
         return assignment
 
     @router.get("/stats", summary="Inventory statistics")
-    async def inventory_stats(db: AsyncSession = Depends(_get_db)):
+    async def inventory_stats(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
         total_products = (await db.execute(select(func.count(Product.id)))).scalar()
         low_stock = (await db.execute(
             select(func.count(Stock.id)).join(Product).where(Stock.quantity <= Product.min_stock_level)

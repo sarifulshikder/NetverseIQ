@@ -58,25 +58,16 @@ class PluginLoader:
                     manifest = json.loads(manifest_path.read_text())
                     plugin_id = manifest.get("id", plugin_dir.name)
 
-                    # Sync to DB registry
                     # Sync to DB registry and get the current enabled status
                     is_enabled = await self._sync_registry(db, plugin_id, manifest)
 
-                    # Only load Python module if plugin.py exists AND the plugin is enabled
-                    if plugin_path.exists():
-                        if is_enabled:
-                            await self._load_module(app, plugin_id, plugin_path, manifest)
-                        else:
-                            logger.info(f"Plugin skipped (disabled): {plugin_id}")
-
                     if is_enabled:
+                        if plugin_path.exists():
+                            await self._load_module(app, plugin_id, plugin_path, manifest)
                         self.loaded.append(plugin_id)
                         logger.info(f"✓ Plugin loaded: {plugin_id} v{manifest.get('version', '?')}")
                     else:
-                        logger.info(f"Plugin {plugin_id} v{manifest.get('version', '?')} registered but not loaded (disabled).")
-
-                    self.loaded.append(plugin_id)
-                    logger.info(f"✓ Plugin loaded: {plugin_id} v{manifest.get('version', '?')}")
+                        logger.info(f"Plugin skipped (disabled): {plugin_id}")
 
                 except Exception as exc:
                     logger.error(f"✗ Failed to load plugin '{plugin_dir.name}': {exc}", exc_info=True)
@@ -85,7 +76,7 @@ class PluginLoader:
 
         logger.info(f"Plugin loader complete. Loaded: {self.loaded}")
 
-    async def _sync_registry(self, db: AsyncSession, plugin_id: str, manifest: dict) -> None:
+    async def _sync_registry(self, db: AsyncSession, plugin_id: str, manifest: dict) -> bool:
         """Upsert plugin record in plugin_registry table."""
         result = await db.execute(
             select(PluginRegistry).where(PluginRegistry.plugin_id == plugin_id)

@@ -1,6 +1,7 @@
+from decimal import Decimal
 """Billing Plugin — SQLAlchemy Models"""
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, Float, ForeignKey, Enum
+from sqlalchemy import Numeric, String, Boolean, DateTime, Text, Integer, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 import enum
@@ -29,10 +30,10 @@ def register_models(Base):
             Enum(InvoiceStatus), default=InvoiceStatus.unpaid
         )
         
-        sub_total: Mapped[float] = mapped_column(Float, default=0.0)
-        discount: Mapped[float] = mapped_column(Float, default=0.0)
-        tax_amount: Mapped[float] = mapped_column(Float, default=0.0)
-        total: Mapped[float] = mapped_column(Float, default=0.0)
+        sub_total: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
+        discount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
+        tax_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
+        total: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
         
         due_date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
         paid_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
@@ -52,8 +53,8 @@ def register_models(Base):
         invoice_id: Mapped[int] = mapped_column(ForeignKey("invoices.id"))
         description: Mapped[str] = mapped_column(String(256))
         quantity: Mapped[int] = mapped_column(Integer, default=1)
-        unit_price: Mapped[float] = mapped_column(Float)
-        total: Mapped[float] = mapped_column(Float)
+        unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+        total: Mapped[Decimal] = mapped_column(Numeric(12, 2))
         
         invoice = relationship("Invoice", back_populates="items")
 
@@ -61,7 +62,7 @@ def register_models(Base):
         __tablename__ = "credit_notes"
         id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
         invoice_id: Mapped[int] = mapped_column(ForeignKey("invoices.id"))
-        amount: Mapped[float] = mapped_column(Float)
+        amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
         reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
         created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -69,7 +70,7 @@ def register_models(Base):
         __tablename__ = "proforma_invoices"
         id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
         customer_id: Mapped[int] = mapped_column(Integer)
-        total: Mapped[float] = mapped_column(Float)
+        total: Mapped[Decimal] = mapped_column(Numeric(12, 2))
         created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     return {
