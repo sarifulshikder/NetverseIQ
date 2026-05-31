@@ -10,7 +10,9 @@
       "label": "Areas & Zones",
       "icon": "MapPin",
       "path": "/area-zones",
-      "permissions": ["area:read"]
+      "permissions": [
+        "area:read"
+      ]
     }
   ],
   "permissions": [
@@ -19,5 +21,6 @@
     "zone:read",
     "zone:write"
   ],
-  "api_prefix": "/api/p/area"
+  "api_prefix": "/api/p/area",
+  "list_endpoint": "/api/p/area_zone/areas"
 }

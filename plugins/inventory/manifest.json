@@ -12,6 +12,10 @@
       "path": "/inventory"
     }
   ],
-  "permissions": ["inventory:read", "inventory:write"],
-  "api_prefix": "/api/p/inventory"
+  "permissions": [
+    "inventory:read",
+    "inventory:write"
+  ],
+  "api_prefix": "/api/p/inventory",
+  "list_endpoint": "/api/p/inventory/products"
 }

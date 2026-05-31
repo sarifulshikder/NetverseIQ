@@ -12,6 +12,10 @@
       "path": "/packages"
     }
   ],
-  "permissions": ["packages:read", "packages:write"],
-  "api_prefix": "/api/p/packages"
+  "permissions": [
+    "packages:read",
+    "packages:write"
+  ],
+  "api_prefix": "/api/p/packages",
+  "list_endpoint": "/api/p/packages/"
 }

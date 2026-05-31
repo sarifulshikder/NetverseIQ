@@ -10,7 +10,9 @@
       "label": "HRM",
       "icon": "Users",
       "path": "/hrm",
-      "permissions": ["hrm:read"]
+      "permissions": [
+        "hrm:read"
+      ]
     }
   ],
   "permissions": [
@@ -19,5 +21,6 @@
     "payroll:read",
     "attendance:read"
   ],
-  "api_prefix": "/api/p/hrm"
+  "api_prefix": "/api/p/hrm",
+  "list_endpoint": "/api/p/hrm/employees"
 }

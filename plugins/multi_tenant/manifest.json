@@ -10,11 +10,14 @@
       "label": "Tenants",
       "icon": "Layers",
       "path": "/tenants",
-      "permissions": ["saas:manage"]
+      "permissions": [
+        "saas:manage"
+      ]
     }
   ],
   "permissions": [
     "saas:manage"
   ],
-  "api_prefix": "/api/p/saas"
+  "api_prefix": "/api/p/saas",
+  "list_endpoint": "/api/p/multi_tenant/tenants"
 }

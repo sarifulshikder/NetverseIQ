@@ -9,5 +9,6 @@
   "permissions": [
     "portal:access"
   ],
-  "api_prefix": "/api/p/portal"
+  "api_prefix": "/api/p/portal",
+  "list_endpoint": "/api/p/customer_portal/dashboard/1"
 }

@@ -10,7 +10,9 @@
       "label": "Network",
       "icon": "Network",
       "path": "/network",
-      "permissions": ["network:read"]
+      "permissions": [
+        "network:read"
+      ]
     }
   ],
   "permissions": [
@@ -21,5 +23,6 @@
     "ip_pool:read",
     "ip_pool:write"
   ],
-  "api_prefix": "/api/p/network"
+  "api_prefix": "/api/p/network",
+  "list_endpoint": "/api/p/network/nas"
 }

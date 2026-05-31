@@ -42,7 +42,16 @@ async def get_menu(
     menu = []
     for p in plugins:
         items = p.manifest.get("menu", [])
-        menu.extend(items)
+        api_prefix = p.manifest.get("api_prefix", f"/api/p/{p.plugin_id}")
+        list_endpoint = p.manifest.get("list_endpoint", "")
+        for item in items:
+            enriched = {
+                **item,
+                "plugin_id": p.plugin_id,
+                "api_prefix": api_prefix,
+                "list_endpoint": list_endpoint,
+            }
+            menu.append(enriched)
     return menu
 
 

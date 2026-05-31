@@ -10,7 +10,9 @@
       "label": "RADIUS",
       "icon": "Key",
       "path": "/radius",
-      "permissions": ["radius:read"]
+      "permissions": [
+        "radius:read"
+      ]
     }
   ],
   "permissions": [
@@ -18,5 +20,6 @@
     "radius:write",
     "radius:sessions"
   ],
-  "api_prefix": "/api/p/radius"
+  "api_prefix": "/api/p/radius",
+  "list_endpoint": "/api/p/radius/sessions/online"
 }

@@ -10,12 +10,15 @@
       "label": "API Gateway",
       "icon": "Shield",
       "path": "/api-gateway",
-      "permissions": ["api:manage"]
+      "permissions": [
+        "api:manage"
+      ]
     }
   ],
   "permissions": [
     "api:manage",
     "api:usage"
   ],
-  "api_prefix": "/api/p/gateway"
+  "api_prefix": "/api/p/gateway",
+  "list_endpoint": "/api/p/api_gateway/keys"
 }

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import List, Optional, Dict, Any
+from database import get_db as _get_db
 from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/p/reporting", tags=["Plugin: Reporting"])
@@ -54,6 +55,3 @@ def get_router(injected_models: Dict[str, Any]):
     return router
 
 
-def _get_db():
-    from database import get_db
-    return Depends(get_db)

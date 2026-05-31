@@ -12,6 +12,10 @@
       "path": "/support"
     }
   ],
-  "permissions": ["support:read", "support:write"],
-  "api_prefix": "/api/p/support"
+  "permissions": [
+    "support:read",
+    "support:write"
+  ],
+  "api_prefix": "/api/p/support",
+  "list_endpoint": "/api/p/support/"
 }

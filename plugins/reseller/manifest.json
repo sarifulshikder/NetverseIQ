@@ -10,7 +10,9 @@
       "label": "Resellers",
       "icon": "Briefcase",
       "path": "/resellers",
-      "permissions": ["reseller:read"]
+      "permissions": [
+        "reseller:read"
+      ]
     }
   ],
   "permissions": [
@@ -18,5 +20,6 @@
     "reseller:write",
     "reseller:portal"
   ],
-  "api_prefix": "/api/p/reseller"
+  "api_prefix": "/api/p/reseller",
+  "list_endpoint": "/api/p/reseller/"
 }

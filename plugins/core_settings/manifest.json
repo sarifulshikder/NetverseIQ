@@ -10,7 +10,9 @@
       "label": "Settings",
       "icon": "Settings",
       "path": "/settings",
-      "permissions": ["settings:read"]
+      "permissions": [
+        "settings:read"
+      ]
     }
   ],
   "permissions": [
@@ -21,5 +23,6 @@
     "gateways:read",
     "gateways:write"
   ],
-  "api_prefix": "/api/p/settings"
+  "api_prefix": "/api/p/settings",
+  "list_endpoint": "/api/p/core_settings/all"
 }

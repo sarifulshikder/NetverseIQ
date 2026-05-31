@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_
 from typing import List, Optional, Dict, Any
+from database import get_db as _get_db
 from datetime import datetime
 import os
 import shutil
@@ -218,6 +219,3 @@ def get_router(injected_models: Dict[str, Any]):
     return router
 
 
-def _get_db():
-    from database import get_db
-    return Depends(get_db)

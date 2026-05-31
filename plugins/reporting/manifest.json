@@ -10,12 +10,15 @@
       "label": "Reports",
       "icon": "BarChart",
       "path": "/reports",
-      "permissions": ["report:read"]
+      "permissions": [
+        "report:read"
+      ]
     }
   ],
   "permissions": [
     "report:read",
     "report:export"
   ],
-  "api_prefix": "/api/p/report"
+  "api_prefix": "/api/p/report",
+  "list_endpoint": "/api/p/reporting/financial/summary"
 }

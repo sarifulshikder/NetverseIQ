@@ -10,9 +10,16 @@
       "label": "Customers",
       "icon": "Users",
       "path": "/customers",
-      "permissions": ["customer:read"]
+      "permissions": [
+        "customer:read"
+      ]
     }
   ],
-  "permissions": ["customer:read", "customer:write", "customer:delete"],
-  "api_prefix": "/api/p/customer"
+  "permissions": [
+    "customer:read",
+    "customer:write",
+    "customer:delete"
+  ],
+  "api_prefix": "/api/p/customer",
+  "list_endpoint": "/api/p/customer/"
 }

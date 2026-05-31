@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { RefreshCw, PlusCircle, Trash2, Edit2, Save, X } from 'lucide-react'
+import { RefreshCw, PlusCircle, Trash2, Edit2 } from 'lucide-react'
 import api from '../api/client.js'
 
-export default function PluginPage({ pluginId, apiPrefix, title }) {
+export default function PluginPage({ pluginId, apiPrefix, title, listEndpoint }) {
   const [items, setItems]     = useState([])
   const [total, setTotal]     = useState(0)
   const [loading, setLoading] = useState(true)
@@ -12,24 +12,39 @@ export default function PluginPage({ pluginId, apiPrefix, title }) {
   const [saving, setSaving]   = useState(false)
   const [keys, setKeys]       = useState([])
 
-  // strip /api prefix since axios baseURL already has /api
   const base = apiPrefix?.replace(/^\/api/, '') || `/p/${pluginId}`
+
+  // list_endpoint থেকে relative path বানাও
+  const listPath = listEndpoint
+    ? listEndpoint.replace(/^\/api/, '')
+    : `${base}/list`
 
   const load = useCallback(async () => {
     setLoading(true); setError('')
     try {
-      const r = await api.get(`${base}/list`)
+      const r = await api.get(listPath)
       const data = r.data
-      const arr = Array.isArray(data) ? data : (data.items || [])
+      let arr = []
+      if (Array.isArray(data)) {
+        arr = data
+      } else if (data && typeof data === 'object') {
+        // items, data, results, employees, products ইত্যাদি যেকোনো key
+        const listKey = ['items','data','results','employees','products',
+          'invoices','payments','tenants','areas','zones','sessions',
+          'keys','webhooks','nasDevices','nodes','outages'].find(k => Array.isArray(data[k]))
+        arr = listKey ? data[listKey] : Object.values(data).find(v => Array.isArray(v)) || []
+      }
       setItems(arr)
-      setTotal(data.total ?? arr.length)
+      setTotal(data?.total ?? arr.length)
       if (arr.length > 0) {
-        setKeys(Object.keys(arr[0]).filter(k => !['id','created_at','updated_at','sa_instance_state'].includes(k)))
+        setKeys(Object.keys(arr[0]).filter(k =>
+          !['id','created_at','updated_at','sa_instance_state','password','hashed_password'].includes(k)
+        ).slice(0, 6)) // max 6 columns
       }
     } catch (e) {
-      setError(e.response?.data?.detail || 'Failed to load data')
+      setError(e.response?.data?.detail || `Failed to load data (${listPath})`)
     } finally { setLoading(false) }
-  }, [base])
+  }, [listPath])
 
   useEffect(() => { load() }, [load])
 
@@ -49,16 +64,21 @@ export default function PluginPage({ pluginId, apiPrefix, title }) {
 
   const del = async (id) => {
     if (!confirm('Delete this item?')) return
-    await api.delete(`${base}/${id}`)
-    load()
+    try {
+      await api.delete(`${base}/${id}`)
+      load()
+    } catch (e) {
+      alert(e.response?.data?.detail || 'Delete failed')
+    }
   }
 
   const fmt = (v) => {
     if (v === null || v === undefined) return '—'
     if (typeof v === 'boolean') return v ? '✓' : '✗'
-    if (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}T/)) return new Date(v).toLocaleDateString()
-    if (typeof v === 'object') return JSON.stringify(v)
-    return String(v)
+    if (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}T/))
+      return new Date(v).toLocaleDateString()
+    if (typeof v === 'object') return JSON.stringify(v).slice(0, 50)
+    return String(v).slice(0, 80)
   }
 
   return (
@@ -111,10 +131,10 @@ export default function PluginPage({ pluginId, apiPrefix, title }) {
               ) : items.length === 0 ? (
                 <tr><td colSpan={keys.length + 2} className="px-4 py-8 text-center text-sm"
                   style={{ color: 'var(--text-secondary)' }}>No data found</td></tr>
-              ) : items.map(item => (
-                <tr key={item.id} className="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-white/3 transition-colors"
+              ) : items.map((item, idx) => (
+                <tr key={item.id ?? idx} className="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-white/3 transition-colors"
                   style={{ borderColor: 'var(--border)' }}>
-                  <td className="px-4 py-3 text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>{item.id}</td>
+                  <td className="px-4 py-3 text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>{item.id ?? idx+1}</td>
                   {keys.map(k => (
                     <td key={k} className="px-4 py-3 text-xs max-w-xs truncate"
                       style={{ color: 'var(--text-secondary)' }}>{fmt(item[k])}</td>
@@ -125,10 +145,12 @@ export default function PluginPage({ pluginId, apiPrefix, title }) {
                         className="p-1.5 rounded hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-indigo-500 transition-colors">
                         <Edit2 size={13} />
                       </button>
-                      <button onClick={() => del(item.id)}
-                        className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-500/10 text-red-400 transition-colors">
-                        <Trash2 size={13} />
-                      </button>
+                      {item.id && (
+                        <button onClick={() => del(item.id)}
+                          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-500/10 text-red-400 transition-colors">
+                          <Trash2 size={13} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -151,7 +173,9 @@ export default function PluginPage({ pluginId, apiPrefix, title }) {
               <button onClick={() => setModal(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
             </div>
             <div className="p-6 grid grid-cols-2 gap-4">
-              {(modal === 'add' ? keys : Object.keys(form).filter(k => !['id','created_at','updated_at'].includes(k))).map(k => (
+              {(modal === 'add' ? keys : Object.keys(form).filter(k =>
+                !['id','created_at','updated_at'].includes(k)
+              )).map(k => (
                 <div key={k} className="col-span-2 sm:col-span-1">
                   <label className="text-xs font-semibold uppercase tracking-wide"
                     style={{ color: 'var(--text-secondary)' }}>{k.replace(/_/g, ' ')}</label>

@@ -10,9 +10,15 @@
       "label": "Notifications",
       "icon": "Bell",
       "path": "/notifications",
-      "permissions": ["notification:read"]
+      "permissions": [
+        "notification:read"
+      ]
     }
   ],
-  "permissions": ["notification:read", "notification:write"],
-  "api_prefix": "/api/p/notification"
+  "permissions": [
+    "notification:read",
+    "notification:write"
+  ],
+  "api_prefix": "/api/p/notification",
+  "list_endpoint": "/api/p/notification/"
 }

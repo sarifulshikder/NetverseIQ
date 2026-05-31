@@ -10,7 +10,9 @@
       "label": "Payments",
       "icon": "CreditCard",
       "path": "/payments",
-      "permissions": ["payment:read"]
+      "permissions": [
+        "payment:read"
+      ]
     }
   ],
   "permissions": [
@@ -18,5 +20,6 @@
     "payment:write",
     "refund:write"
   ],
-  "api_prefix": "/api/p/payment"
+  "api_prefix": "/api/p/payment",
+  "list_endpoint": "/api/p/payment/"
 }

@@ -19,19 +19,19 @@ import PluginPage from './pages/PluginPage.jsx'
 import api from './api/client.js'
 
 const STATIC_PAGES = {
-  '':            <Dashboard />,
-  'plugins':     <Plugins />,
-  'customers':   <Customers />,
-  'billing':     <Billing />,
+  '':              <Dashboard />,
+  'plugins':       <Plugins />,
+  'customers':     <Customers />,
+  'billing':       <Billing />,
   'billing/invoices': <Billing />,
   'notifications': <Notifications />,
-  'analytics':   <Dashboard />,
-  'support':     <Support />,
-  'inventory':   <Inventory />,
-  'expenses':    <Expenses />,
-  'packages':    <Packages />,
+  'analytics':     <Dashboard />,
+  'support':       <Support />,
+  'inventory':     <Inventory />,
+  'expenses':      <Expenses />,
+  'packages':      <Packages />,
   'subscriptions': <Subscriptions />,
-  'users':       <Users />,
+  'users':         <Users />,
 }
 
 function PrivateRoute({ children }) {
@@ -79,6 +79,7 @@ function DynamicRoutes() {
                 pluginId={item.plugin_id || path}
                 apiPrefix={item.api_prefix || `/api/p/${path}`}
                 title={item.label}
+                listEndpoint={item.list_endpoint}
               />
             } />
           )

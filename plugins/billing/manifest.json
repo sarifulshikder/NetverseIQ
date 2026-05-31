@@ -10,15 +10,24 @@
       "label": "Billing",
       "icon": "FileText",
       "path": "/billing",
-      "permissions": ["billing:read"]
+      "permissions": [
+        "billing:read"
+      ]
     },
     {
       "label": "Invoices",
       "icon": "Receipt",
       "path": "/billing/invoices",
-      "permissions": ["billing:read"]
+      "permissions": [
+        "billing:read"
+      ]
     }
   ],
-  "permissions": ["billing:read", "billing:write", "billing:delete"],
-  "api_prefix": "/api/p/billing"
+  "permissions": [
+    "billing:read",
+    "billing:write",
+    "billing:delete"
+  ],
+  "api_prefix": "/api/p/billing",
+  "list_endpoint": "/api/p/billing/invoices"
 }

@@ -12,6 +12,10 @@
       "path": "/expenses"
     }
   ],
-  "permissions": ["expense:read", "expense:write"],
-  "api_prefix": "/api/p/expense"
+  "permissions": [
+    "expense:read",
+    "expense:write"
+  ],
+  "api_prefix": "/api/p/expense",
+  "list_endpoint": "/api/p/expense/"
 }
