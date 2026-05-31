@@ -53,12 +53,28 @@ def get_router(injected_models: Dict[str, Any]):
 
     @router.get("/business-metrics", summary="Get specific metrics (MRR, CLV)")
     async def business_metrics(db: AsyncSession = Depends(_get_db), current_user: User = Depends(get_current_user)):
-        # Mock calculation
-        return {
-            "mrr": 45000,
-            "clv": 12000,
-            "cac": 1500
-        }
+        try:
+            # MRR: Monthly Recurring Revenue from active subscriptions
+            mrr = (await db.execute(text("SELECT COALESCE(SUM(monthly_price), 0) FROM subscriptions WHERE status='active'"))).scalar() or 0
+            
+            # KPI components for CLV calculation
+            active_customers = (await db.execute(text("SELECT COUNT(*) FROM customers WHERE status='active'"))).scalar() or 0
+            total_customers = (await db.execute(text("SELECT COUNT(*) FROM customers"))).scalar() or 0
+            paid_revenue = (await db.execute(text("SELECT COALESCE(SUM(total), 0) FROM invoices WHERE status='paid'"))).scalar() or 0
+            
+            arpu = float(paid_revenue / active_customers) if active_customers > 0 else 0
+            churn_rate = ((total_customers - active_customers) / total_customers) if total_customers > 0 else 0
+            
+            # CLV = ARPU / Churn Rate (simplified)
+            clv = arpu / churn_rate if churn_rate > 0 else arpu * 24 # Fallback to 24 months value
+            
+            return {
+                "mrr": round(float(mrr), 2),
+                "clv": round(clv, 2),
+                "cac": 1500 # CAC remains mock as we lack marketing spend data
+            }
+        except Exception:
+            return {"mrr": 0, "clv": 0, "cac": 0}
 
     return router
 

@@ -13,6 +13,7 @@ from config import settings
 from database import engine, Base, AsyncSessionLocal
 from plugin_loader import PluginLoader
 from event_bus import EventBus
+from scheduler import setup_scheduler
 from seed import seed_database
 from api.routes import auth, users, plugins, health, activity, roles
 
@@ -23,6 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger("netverseiq")
 plugin_loader = PluginLoader()
 event_bus = EventBus(settings.REDIS_URL)
+scheduler = setup_scheduler()
 
 
 @asynccontextmanager
@@ -33,6 +35,9 @@ async def lifespan(app: FastAPI):
     
     # Store event bus in app state
     app.state.event_bus = event_bus
+    
+    # Start scheduler
+    scheduler.start()
     
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -45,6 +50,7 @@ async def lifespan(app: FastAPI):
     logger.info("NetverseIQ is ready ✓")
     yield
     await event_bus.close()
+    scheduler.shutdown()
     await engine.dispose()
     logger.info("NetverseIQ shut down gracefully.")
 

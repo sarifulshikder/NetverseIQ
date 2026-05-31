@@ -10,13 +10,14 @@ import string
 
 from api.deps import get_current_user
 from models.user import User
+from fastapi import FastAPI
 
 router = APIRouter(prefix="/api/p/billing", tags=["Plugin: Billing"])
 
 # Models will be injected via get_router
 models = {}
 
-def get_router(injected_models: Dict[str, Any]):
+async def get_router(injected_models: Dict[str, Any], app: FastAPI):
     global models
     models = injected_models
     
@@ -24,6 +25,22 @@ def get_router(injected_models: Dict[str, Any]):
     InvoiceItem = models["InvoiceItem"]
     CreditNote = models["CreditNote"]
     ProformaInvoice = models["ProformaInvoice"]
+
+    # Subscribe to payment events
+    async def handle_payment_received(data):
+        invoice_id = data.get("invoice_id")
+        if invoice_id:
+            from database import AsyncSessionLocal
+            from .models import InvoiceStatus
+            async with AsyncSessionLocal() as db:
+                result = await db.execute(select(Invoice).where(Invoice.id == invoice_id))
+                invoice = result.scalar_one_or_none()
+                if invoice:
+                    invoice.status = InvoiceStatus.paid
+                    invoice.paid_at = datetime.utcnow()
+                    await db.commit()
+    
+    await app.state.event_bus.subscribe("payment.received", handle_payment_received)
 
     def gen_invoice_number():
         suffix = ''.join(random.choices(string.digits, k=6))
@@ -131,10 +148,32 @@ def get_router(injected_models: Dict[str, Any]):
     @router.get("/invoices/{invoice_id}/pdf", summary="Generate Invoice PDF")
     async def get_invoice_pdf(
         invoice_id: int,
+        db: AsyncSession = Depends(_get_db),
         current_user: User = Depends(get_current_user),
     ):
-        # Placeholder for actual PDF generation
-        return {"status": "success", "message": f"PDF generated for invoice {invoice_id} (mock)"}
+        from sqlalchemy.orm import selectinload
+        from reportlab.pdfgen import canvas
+        from fastapi.responses import StreamingResponse
+        import io
+        
+        result = await db.execute(
+            select(Invoice)
+            .where(Invoice.id == invoice_id)
+            .options(selectinload(Invoice.items))
+        )
+        inv = result.scalar_one_or_none()
+        if not inv:
+            raise HTTPException(404, "Invoice not found")
+            
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer)
+        p.drawString(100, 750, f"Invoice: {inv.invoice_number}")
+        p.drawString(100, 730, f"Total: {inv.total}")
+        p.showPage()
+        p.save()
+        
+        buffer.seek(0)
+        return StreamingResponse(buffer, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=invoice_{inv.invoice_number}.pdf"})
 
     return router
 

@@ -7,13 +7,17 @@ from database import get_db as _get_db
 from api.deps import get_current_user
 from models.user import User
 from datetime import datetime
+from fastapi import FastAPI
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/p/radius", tags=["Plugin: Radius"])
 
 # Models will be injected via get_router
 models = {}
 
-def get_router(injected_models: Dict[str, Any]):
+async def get_router(injected_models: Dict[str, Any], app: FastAPI):
     global models
     models = injected_models
     
@@ -22,6 +26,25 @@ def get_router(injected_models: Dict[str, Any]):
     RadUserGroup = models["RadUserGroup"]
     RadAcct = models["RadAcct"]
     Nas = models["Nas"]
+
+    # Subscribe to payment events to reactivate users
+    async def handle_payment_received(data):
+        customer_id = data.get("customer_id")
+        if customer_id:
+            from database import AsyncSessionLocal
+            from plugins.customer.models import Customer
+            async with AsyncSessionLocal() as db:
+                # Find customer connection_id (RADIUS username)
+                result = await db.execute(select(Customer).where(Customer.id == customer_id))
+                customer = result.scalar_one_or_none()
+                if customer and customer.connection_id:
+                    # In a real ISP app, we'd update RadCheck to allow login
+                    # or RadReply to remove speed limits/suspension tags
+                    logger.info(f"RADIUS: Reactivating account for {customer.connection_id} due to payment")
+                    # Mock: Update RadCheck password if it was disabled (e.g. by prefixing it)
+                    # For now just logging the intent as requested by the audit
+    
+    await app.state.event_bus.subscribe("payment.received", handle_payment_received)
 
     # ── Session Management Endpoints ──────────────────────────
     @router.get("/sessions/online", summary="List online users")

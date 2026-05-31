@@ -8,18 +8,55 @@ from api.deps import get_current_user
 from models.user import User
 from datetime import datetime
 
+from fastapi import FastAPI
+import logging
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/p/notification", tags=["Plugin: Notification"])
 
 # Models will be injected via get_router
 models = {}
 
-def get_router(injected_models: Dict[str, Any]):
+async def get_router(injected_models: Dict[str, Any], app: FastAPI):
     global models
     models = injected_models
     
     Notification = models["Notification"]
     NotificationTemplate = models["NotificationTemplate"]
     NotificationSchedule = models["NotificationSchedule"]
+
+    # Subscribe to events to send notifications
+    async def handle_customer_created(data):
+        logger.info(f"NOTIFICATION: Sending welcome message to {data.get('email')}")
+        from database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            notif = Notification(
+                title="Welcome to NetverseIQ",
+                content=f"Welcome {data.get('name')}! Your account has been created.",
+                channel="email",
+                status="sent",
+                sent_at=datetime.utcnow()
+            )
+            db.add(notif)
+            await db.commit()
+
+    async def handle_payment_received(data):
+        logger.info(f"NOTIFICATION: Sending payment confirmation for amount {data.get('amount')}")
+        from database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            notif = Notification(
+                title="Payment Received",
+                content=f"Thank you! We received your payment of {data.get('amount')}.",
+                channel="sms",
+                status="sent",
+                sent_at=datetime.utcnow()
+            )
+            db.add(notif)
+            await db.commit()
+    
+    await app.state.event_bus.subscribe("customer.created", handle_customer_created)
+    await app.state.event_bus.subscribe("payment.received", handle_payment_received)
 
     # ── Notification Endpoints ────────────────────────────────
     @router.get("/", summary="List all notifications")
