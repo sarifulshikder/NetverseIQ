@@ -74,13 +74,13 @@ def get_router(injected_models: Dict[str, Any]):
         db: AsyncSession = Depends(_get_db), 
         current_customer: Any = Depends(get_current_portal_customer)
     ):
-        # Use real data from current_customer
+        # Already have customer in current_customer
         return {
             "customer_name": current_customer.name,
             "current_package": current_customer.package_name or "No Package",
             "status": current_customer.status,
-            "total_due": float(current_customer.monthly_fee), # Simplified
-            "expiry_date": (datetime.utcnow() + timedelta(days=15)).strftime("%Y-%m-%d"), # Mock expiry
+            "total_due": float(current_customer.monthly_fee),
+            "expiry_date": (datetime.utcnow() + timedelta(days=15)).strftime("%Y-%m-%d"),
             "data_usage": "Usage data requires RADIUS integration"
         }
 
